@@ -20,3 +20,45 @@ credential-scan-git-verified-no-update-no-log:
 
 credential-scan-git-unverified-no-update-no-log:
 	docker run --rm -it -v $(PWD):/opt trufflesecurity/trufflehog:latest git file:///opt --no-update --fail > /dev/null
+
+build:
+	dotnet restore src/DfT.DTRO && dotnet build src/DfT.DTRO
+
+test:
+	dotnet test
+
+build-test: build test
+
+docker-build:
+	docker build --target publish-service -t dtro-publish-api ./src/DfT.DTRO
+	docker build --target search-service -t dtro-search-api ./src/DfT.DTRO
+	docker build --target postgres-migrations-job -t dtro-postgres-migrations-job ./src/DfT.DTRO
+
+docker-push:
+	docker tag dtro-publish-api $(REGISTRY_URL)/dtro-prototype-publish:latest
+	docker push $(REGISTRY_URL)/dtro-prototype-publish:latest
+
+	docker tag dtro-search-api $(REGISTRY_URL)/dtro-prototype-search:latest
+	docker push $(REGISTRY_URL)/dtro-prototype-search:latest
+
+	docker tag dtro-postgres-migrations-job $(REGISTRY_URL)/dtro-prototype-postgres-migrations-job:latest
+	docker push $(REGISTRY_URL)/dtro-prototype-postgres-migrations-job:latest
+
+init:
+	cd terraform && make init
+
+deploy:
+	cd terraform && make apply-auto-approve
+
+docker-run:
+	docker run -e ASPNETCORE_ENVIRONMENT=development --rm --name dtro-publish-api -p 8000:8080 dtro-publish-api &
+	docker run -e ASPNETCORE_ENVIRONMENT=development --rm --name dtro-search-api -p 8001:8080 dtro-search-api
+
+plan:
+	cd terraform && make plan
+
+up: docker-build docker-run
+
+down:
+	docker stop dtro-publish-api
+	docker stop dtro-search-api

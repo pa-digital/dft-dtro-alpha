@@ -1,0 +1,23 @@
+name: DfT.DTRO (Pull request)
+
+on:
+  pull_request:
+    branches: [ develop ]
+    paths:
+      - '!README.md'
+      - '!**/README.MD'
+      - '**/**.cs'
+      - '**/**.json'
+
+jobs:
+
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - name: Build
+      run: make build-test

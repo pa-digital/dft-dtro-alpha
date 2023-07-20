@@ -1,0 +1,54 @@
+name: DfT.DTRO (Release)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'release/**'
+
+jobs:
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - name: Build
+      run: make build-test
+    - name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: '${{ secrets.RELEASE_GOOGLE_CREDENTIALS }}'
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2.0.3
+      with:
+        terraform_version: 1.4.6
+    - name: Terraform init
+      run: make init
+      env:
+        DEPLOY_ENVIRONMENT: dft-gcp
+    - name: Deploy
+      run: |
+        gcloud auth configure-docker europe-west2-docker.pkg.dev
+        make deploy
+      env:
+        DEPLOY_ENVIRONMENT: dft-gcp
+    - name: Run Postgres database migrations
+      run: |
+        gcloud run jobs execute dtro-postgres-migrations --region europe-west2 --wait
+      env:
+        DEPLOY_ENVIRONMENT: dft-gcp
+    - name: Find and delete untagged migration job images
+      run: |
+        gcloud artifacts docker images list \
+          --include-tags \
+          --filter='-tags:*' \
+          --format='get(version)' \
+          --limit=unlimited \
+          $IMAGE_REPOSITORY |
+          xargs -I '{}' gcloud artifacts docker images delete $IMAGE_REPOSITORY@{} --async --quiet
+      env:
+        IMAGE_REPOSITORY: europe-west2-docker.pkg.dev/dft-dtro/dtro/dtro-prototype-postgres-migrations-job        

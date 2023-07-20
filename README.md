@@ -1,25 +1,44 @@
-# Github repository credential monitoring solution
+# DfT DTRO API prototype (Alpha)
 
-This repository includes an automated solution to detect credentials staged for commit to Github.
+A prototype implementation of API endpoints for publishing and consuming digital Traffic Regulation Orders.
 
-## Reusable CredentialDetection Workflow - Setup
+## Run
 
-If working on source code housed in a Github repository, the Informed.Repo.CredentialScan.Verified.CI.yml file in the .github/workflows directory simply needs mirrored to the target repository to avail of automatic scanning whenever a push or pull request event is detected (note the directory structure must remain intact).
+To run the solution on Linux/OS X, use the following commands.
+```
+make docker-build
+make docker-run
+```
 
-## Local Development Requirements
+If you are running on a Windows host, please see the contents of the Makefile in the directory root for individual docker commands to build, run and launch the service.
 
-The pre-commit solution included in this repository requires all users have docker installed on their development environment.
+## GCP Components
 
-## Local Development setup and use
+To deploy this project, the following GCP APIs need to be enabled at a project level:
 
-To help avoid sensitive credentials being deposited to source control, a pre-configured git pre-commit hook can be registered by running the command `git config --local core.hooksPath .githooks/` in the root directory of this repository. Alternatively, the command `make git-credential-config` can be run if Make is installed.
+1. Cloud Domains API
+1. Cloud DNS API
+1. Firestore API
+1. Compute Engine API
+1. Artifact Registry API
+1. Cloud Run API
+1. Cloud Resource Manager API
+1. Identity and Access Management (IAM) API
+1. Service Usage API
 
-When staging content for a commit, files will be automatically scanned and if credentials verified, the commit will be aborted.
+## Terraform Use
 
-## Makefile content
+To support account switching (but with single variable files), when initialising terraform you must first make sure that the DEPLOY_ENVIRONMENT environment variable has been set. For the development GCP environment, this should be set to "default". For deployment to a release environment, this should be set to "dft-gcp". Terraform code has been configured to reconcile the appropriate variables by drawing these from the terraform/configuration/environments/${DEPLOY_ENVIRONMENT}.tfvars file.
 
-A shorthand for running credential scans manually at any time is included in this solution's source. To trigger a git (verified only) scan, run the command `make credential-scan-git-verified`. Please see Makefile contents for other supported scan types.
+As an applied example, the following commands will initialise terraform and select the workspace for the development account:
 
-## Filtering false positives
+```
+export DEPLOY_ENVIRONMENT=default
+make init
+```
 
-On issuing the `make git-credential-config` command, a `credential-scan-exclusions.txt` file will be created in the root of your repository directory (if it does not already exist). If a .gitignore file is found in the repository root, this will be used as the template with newlines removed. Regex filepaths can then be added to this file (newline separated) to filter out false positives on a git commit command being issued.
+To simplify/automate the initialisation and selection of workspaces - make sure to the `make` commands in the terraform directory.
+
+## Sample API requests
+
+Sample requests can be found in the src/DfT.DTRO/Schemas directory.
