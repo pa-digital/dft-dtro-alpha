@@ -3,21 +3,18 @@ using System.Collections.Generic;
 namespace DfT.DTRO.Models.Pagination;
 
 /// <summary>
-/// Response with paginated data.
+/// Result of a query with paginated data.
 /// </summary>
-public class PaginatedResponse<T>
+public class PaginatedResult<T>
 {
     /// <summary>
-    /// Creates a paginated response.
+    /// Creates a paginated query result.
     /// </summary>
     /// <param name="results"></param>
-    /// <param name="page"></param>
     /// <param name="totalCount"></param>
-    public PaginatedResponse(IReadOnlyCollection<T> results, int page, int totalCount)
+    public PaginatedResult(IReadOnlyCollection<T> results, int totalCount)
     {
         Results = results;
-        Page = page;
-        PageSize = results.Count;
         TotalCount = totalCount;
     }
 
@@ -25,16 +22,6 @@ public class PaginatedResponse<T>
     /// List of records.
     /// </summary>
     public IReadOnlyCollection<T> Results { get; set; }
-
-    /// <summary>
-    /// Current page number.
-    /// </summary>
-    public int Page { get; set; }
-
-    /// <summary>
-    /// Size of the current page.
-    /// </summary>
-    public int PageSize { get; set; }
 
     /// <summary>
     /// Total number of records.

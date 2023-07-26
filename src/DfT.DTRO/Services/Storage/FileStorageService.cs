@@ -4,6 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DfT.DTRO.Attributes;
+using DfT.DTRO.Models;
+using DfT.DTRO.Models.Filtering;
+using DfT.DTRO.Models.Pagination;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -144,9 +147,9 @@ public class FileStorageService : IStorageService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> DeleteDtro(Guid id, System.DateTime? deletionTime)
+    public async Task<bool> DeleteDtro(Guid id, DateTime? deletionTime)
     {
-        deletionTime ??= System.DateTime.UtcNow;
+        deletionTime ??= DateTime.UtcNow;
 
         var existing = await GetDtroById(id);
 
@@ -224,7 +227,13 @@ public class FileStorageService : IStorageService
     }
 
     /// <inheritdoc />
-    public Task<List<Models.DTRO>> FindDtros(DateTime? minimumPublicationTime)
+    public Task<PaginatedResult<Models.DTRO>> FindDtros(DtroSearch search)
+    {
+        throw new NotImplementedException("Operation not available for FileStorageService.");
+    }
+
+    /// <inheritdoc />
+    public Task<List<Models.DTRO>> FindDtros(DtroEventSearch search)
     {
         throw new NotImplementedException("Operation not available for FileStorageService.");
     }

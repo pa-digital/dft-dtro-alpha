@@ -1,14 +1,15 @@
-﻿using DfT.DTRO.Attributes;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using DfT.DTRO.Attributes;
 using DfT.DTRO.FeatureManagement;
 using DfT.DTRO.Models;
-using System.Threading.Tasks;
+using DfT.DTRO.Services.Data;
+using DfT.DTRO.Services.Storage;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using DfT.DTRO.Services.Storage;
-using DfT.DTRO.Services.Data;
-using Microsoft.AspNetCore.Http;
-using System;
 
 namespace DfT.DTRO.Controllers;
 
@@ -20,20 +21,20 @@ namespace DfT.DTRO.Controllers;
 public class EventsController : ControllerBase
 {
     private readonly IStorageService _storageService;
-    private readonly IDtrosFilteringService _filteringService;
+    private readonly IDtroMappingService _eventMappingService;
 
     /// <summary>
     /// The default constructor.
     /// </summary>
     /// <param name="storageService">An <see cref="IStorageService"/> instance.</param>
-    /// <param name="filteringService">An <see cref="IDtrosFilteringService"/> instance.</param>
+    /// <param name="eventMappingService">An <see cref="IDtroMappingService"/> instance.</param>
     public EventsController(
         IStorageService storageService,
-        IDtrosFilteringService filteringService
+        IDtroMappingService eventMappingService
         )
     {
         _storageService = storageService;
-        _filteringService = filteringService;
+        _eventMappingService = eventMappingService;
     }
 
     /// <summary>
@@ -55,13 +56,23 @@ public class EventsController : ControllerBase
             );
         }
 
-        var dtros = await _storageService.FindDtros(search.Since?.ToUniversalTime());
+        var searchRes = await _storageService.FindDtros(search);
 
-        // Warning:
-        // This implementation is intended only for prototype use.
-        // Data is filtered in-memory instead of on the database side due to the limitations of current database.
-        var filteredDtros = _filteringService.Filter(dtros, search);
+        var events = _eventMappingService.MapToEvents(searchRes).ToList();
 
-        return filteredDtros;
+        var paginatedEvents = events
+            .Skip((search.Page.Value - 1) * search.PageSize.Value)
+            .Take(search.PageSize.Value)
+            .ToList();
+
+        var res = new DtroEventSearchResult
+        {
+            TotalCount = events.Count(),
+            Events = paginatedEvents,
+            Page = search.Page.Value,
+            PageSize = Math.Min(search.PageSize.Value, paginatedEvents.Count)
+        };
+
+        return res;
     }
 }

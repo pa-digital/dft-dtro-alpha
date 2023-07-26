@@ -4,18 +4,19 @@ using System.Collections.Generic;
 using DfT.DTRO.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using NpgsqlTypes;
 
 #nullable disable
 
 namespace DfT.DTRO.Migrations
 {
     [DbContext(typeof(DtroContext))]
-    partial class DtroContextModelSnapshot : ModelSnapshot
+    [Migration("20230718083322_AggregateSearchOptimisationFields")]
+    partial class AggregateSearchOptimisationFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -55,17 +56,8 @@ namespace DfT.DTRO.Migrations
                     b.Property<string>("LastUpdatedCorrelationId")
                         .HasColumnType("text");
 
-                    b.Property<NpgsqlBox>("Location")
-                        .HasColumnType("box");
-
                     b.Property<List<string>>("OrderReportingPoints")
                         .HasColumnType("text[]");
-
-                    b.Property<DateTime?>("RegulationEnd")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("RegulationStart")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<List<string>>("RegulationTypes")
                         .HasColumnType("text[]");

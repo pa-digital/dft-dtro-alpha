@@ -1,4 +1,9 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using NpgsqlTypes;
 
 namespace DfT.DTRO.Models;
 
@@ -114,6 +119,69 @@ public record struct BoundingBox(double WestLongitude, double SouthLatitude, dou
     /// </returns>
     public bool Contains(Coordinates coordinates, [NotNullWhen(false)] out BoundingBoxErrors errors)
         => Contains(coordinates.Longitude, coordinates.Latitude, out errors);
+
+    /// <summary>
+    /// Creates a minimal <see cref="BoundingBox"/> that contains all of the provided coordinates.
+    /// </summary>
+    /// <param name="coordinates">The coordinates that should be contained within the bounding box.</param>
+    /// <returns>A <see cref="BoundingBox"/> that contains all of provided coordinates.</returns>
+    public static BoundingBox Wrapping(params Coordinates[] coordinates)
+        => Wrapping(coordinates.AsEnumerable());
+
+    /// <summary>
+    /// Determines whether this instance has any overlapping area
+    /// with the <see cref="BoundingBox"/> provided in the argument.
+    /// </summary>
+    /// <param name="other">The <see cref="BoundingBox"/> to check for overlap with.</param>
+    /// <returns>
+    /// <see langword="true"/> if the overlap exists; otherwise <see langword="false"/>.
+    /// </returns>
+    public bool Overlaps(BoundingBox other)
+        => SouthLatitude <= other.NorthLatitude &&
+            other.SouthLatitude <= NorthLatitude &&
+            WestLongitude <= other.EastLongitude &&
+            other.WestLongitude <= EastLongitude;
+
+    /// <summary>
+    /// Converts a <see cref="BoundingBox"/> to an <see cref="NpgsqlBox"/>.
+    /// </summary>
+    /// <param name="bbox"></param>
+    public static implicit operator NpgsqlBox(BoundingBox bbox)
+        => new(bbox.NorthLatitude, bbox.EastLongitude, bbox.SouthLatitude, bbox.WestLongitude);
+
+    /// <summary>
+    /// Creates a minimal <see cref="BoundingBox"/> that contains all of the provided coordinates.
+    /// </summary>
+    /// <param name="coordinates">The coordinates that should be contained within the bounding box.</param>
+    /// <returns>A <see cref="BoundingBox"/> that contains all of provided coordinates.</returns>
+    public static BoundingBox Wrapping(IEnumerable<Coordinates> coordinates)
+    {
+        var (east, south) = coordinates.First();
+        var north = south;
+        var west = east;
+
+        foreach (var coord in coordinates.Skip(1))
+        {
+            if (coord.Latitude < south)
+            {
+                south = coord.Latitude;
+            }
+            else if (coord.Latitude > north)
+            {
+                north = coord.Latitude;
+            }
+            if (coord.Longitude < west)
+            {
+                west = coord.Longitude;
+            }
+            else if (coord.Longitude > east)
+            {
+                east = coord.Longitude;
+            }
+        }
+
+        return new BoundingBox(west, south, east, north);
+    }
 }
 
 /// <summary>

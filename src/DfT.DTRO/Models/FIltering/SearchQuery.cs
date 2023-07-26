@@ -21,6 +21,18 @@ public class SearchQuery
     public DateTime? PublicationTime { get; set; }
 
     /// <summary>
+    /// Date D-TRO was last updated.
+    /// </summary>
+    [DataType(DataType.DateTime)]
+    public DateTime? ModificationTime { get; set; }
+
+    /// <summary>
+    /// Date D-TRO was deleted.
+    /// </summary>
+    [DataType(DataType.DateTime)]
+    public DateTime? DeletionTime { get; set; }
+
+    /// <summary>
     /// Highway Authority identifier.
     /// </summary>
     [DataMember(Name = "ha")]

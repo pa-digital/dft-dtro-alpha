@@ -27,23 +27,23 @@ namespace DfT.DTRO.Controllers;
 public class SearchController : ControllerBase
 {
     private readonly IStorageService _storageService;
-    private readonly IDtrosFilteringService _filteringService;
     private readonly ILogger<SearchController> _logger;
+    private readonly IDtroMappingService _mappingService;
 
     /// <summary>
     /// Default constructor.
     /// </summary>
     /// <param name="storageService">An <see cref="IStorageService" /> instance.</param>
-    /// <param name="filteringService">An <see cref="IDtrosFilteringService" /> instance.</param>
     /// <param name="logger">An <see cref="ILogger{DTROsSearchController}" /> instance.</param>
+    /// <param name="mappingService">An <see cref="IDtroMappingService" /> instance.</param>
     public SearchController(
         IStorageService storageService,
-        IDtrosFilteringService filteringService,
-        ILogger<SearchController> logger)
+        ILogger<SearchController> logger,
+        IDtroMappingService mappingService)
     {
         _storageService = storageService;
-        _filteringService = filteringService;
         _logger = logger;
+        _mappingService = mappingService;
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public class SearchController : ControllerBase
     [ValidateModelState]
     [FeatureGate(FeatureNames.DtroRead)]
     [SwaggerResponse(200, type: typeof(PaginatedResponse<DtroSearchResult>), description: "Ok")]
-    public async Task<IActionResult> SearchDtros([FromBody] SearchCriteria body)
+    public async Task<ActionResult<PaginatedResponse<DtroSearchResult>>> SearchDtros([FromBody] DtroSearch body)
     {
         const string methodName = "dtro.search";
 
@@ -68,33 +68,16 @@ public class SearchController : ControllerBase
 
         try
         {
-            DateTime? minPublicationTime = null;
+            var result = await _storageService.FindDtros(body);
 
-            if (body.Queries.Any(query => query.PublicationTime is not null && query.PublicationTime > DateTime.Now))
-            {
-                return BadRequest(
-                    new ApiErrorResponse("Bad request", "The datetime for the publicationTime field cannot be in the future.")
-                );
-            }
+            IEnumerable<DtroSearchResult> mappedResult = _mappingService.MapToSearchResult(result.Results);
 
-            if (body.Queries.All(query => query.PublicationTime is not null))
-            {
-                minPublicationTime = body.Queries.Min(query => query.PublicationTime)!.Value.ToUniversalTime();
-            }
+            PaginatedResponse<DtroSearchResult> paginatedResult =
+                new(mappedResult.ToList().AsReadOnly(),
+                    body.Page,
+                    result.TotalCount);
 
-            IEnumerable<Models.DTRO> dtros = await _storageService.FindDtros(minPublicationTime);
-
-            // Warning:
-            // This implementation is intended only for prototype use.
-            // Data is filtered in-memory instead of on the database side due to the limitations of current database.
-            PaginatedResponse<DtroSearchResult> filteredDtros = _filteringService.Filter(dtros, body);
-
-            _logger.LogInformation("[{method}] Found {dtrosCount} DTROs matching the criteria",
-                methodName,
-                filteredDtros.TotalCount
-            );
-
-            return Ok(filteredDtros);
+            return paginatedResult;
         }
         catch (InvalidOperationException err)
         {

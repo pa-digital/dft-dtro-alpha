@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DfT.DTRO.Models;
+using DfT.DTRO.Models.Filtering;
+using DfT.DTRO.Models.Pagination;
 using Newtonsoft.Json.Linq;
 
 namespace DfT.DTRO.Services.Storage;
@@ -65,12 +68,6 @@ public interface IStorageService
     Task UpdateDtroAsJson(Guid id, object data);
 
     /// <summary>
-    ///     Finds all DTROs published after date specified in <paramref name="minimumPublicationTime" />
-    /// </summary>
-    /// <param name="minimumPublicationTime">The publication time of the oldest DTRO that should be included in the results.</param>
-    Task<List<Models.DTRO>> FindDtros(DateTime? minimumPublicationTime);
-
-    /// <summary>
     /// Tries to update the DTRO.
     /// </summary>
     /// <param name="id">The unique id of the DTRO.</param>
@@ -89,8 +86,20 @@ public interface IStorageService
     /// <param name="deletionTime">The time of deletion. Will default to <see cref="DateTime.UtcNow"/> if not provided.</param>
     /// <returns>
     /// A <see cref="Task"/> that resolves to <see langword="true"/>
-    /// if the DTRO was successfully marked dteleted
+    /// if the DTRO was successfully marked deleted
     /// or <see langword="false"/> if it was not found.
     /// </returns>
     Task<bool> DeleteDtro(Guid id, DateTime? deletionTime = null);
+
+    /// <summary>
+    /// Finds all DTROs that match the criteria specified in <paramref name="search"/>.
+    /// </summary>
+    /// <param name="search">The search criteria.</param>
+    Task<PaginatedResult<Models.DTRO>> FindDtros(DtroSearch search);
+    
+    /// <summary>
+    /// Finds all DTRO events that match the criteria specified in <paramref name="search"/>.
+    /// </summary>
+    /// <param name="search">The search criteria.</param>
+    Task<List<Models.DTRO>> FindDtros(DtroEventSearch search);
 }

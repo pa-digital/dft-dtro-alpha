@@ -37,6 +37,16 @@ public class DtroEventSearch
     public DateTime? Since { get; set; }
 
     /// <summary>
+    /// The time DTRO was deleted.
+    /// </summary>
+    public DateTime? DeletionTime { get; set; }
+
+    /// <summary>
+    /// The time DTRO was last updated.
+    /// </summary>
+    public DateTime? ModificationTime { get; internal set; }
+
+    /// <summary>
     /// The unique identifier of the highway authority that created the TRO.
     /// </summary>
     [DataMember(Name = "ha")]

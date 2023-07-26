@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using DfT.DTRO.Extensions;
 
 namespace DfT.DTRO.Models;
 
@@ -63,4 +64,23 @@ public class DtroSearchResult
     /// </summary>
     [DataMember(Name = "_links")]
     public Links Links { get; set; }
+
+    public static DtroSearchResult FromDtro(DTRO dtro, string baseUrl, List<DateTime> regulationStartDates, List<DateTime> regulationEndDates)
+    {
+        return new DtroSearchResult
+        {
+            TroName = dtro.Data.GetValueOrDefault<string>("source.troName"),
+            HighwayAuthorityId = dtro.Data.GetValueOrDefault<int>("source.ha"),
+            PublicationTime = dtro.Created.Value,
+            RegulationType = dtro.RegulationTypes,
+            VehicleType = dtro.VehicleTypes,
+            OrderReportingPoint = dtro.OrderReportingPoints,
+            RegulationStart = regulationStartDates,
+            RegulationEnd = regulationEndDates,
+            Links = new Links
+            {
+                Self = $"{baseUrl}/v1/dtros/{dtro.Id}"
+            }
+        };
+    }
 }

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
+using DfT.DTRO.Models;
+using DfT.DTRO.Models.Filtering;
+using DfT.DTRO.Models.Pagination;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace DfT.DTRO.Services.Storage;
@@ -37,7 +38,7 @@ public class MultiStorageService : IStorageService
     /// that this <see cref="MultiStorageService"/> will delegate to.
     /// </param>
     /// <param name="logger">A logger to be used by this service.</param>
-    /// <param name="WriteToBucketOnly">Indicates whether Firestore should be used for writing data.</param>
+    /// <param name="WriteToBucketOnly">Indicates whether Postgres should be used for writing data.</param>
     public MultiStorageService(
         IEnumerable<IStorageService> services,
         ILogger<MultiStorageService> logger,
@@ -203,16 +204,23 @@ public class MultiStorageService : IStorageService
         throw new AggregateException(exceptions);
     }
 
-    /// <inheritdoc />
-    public Task<List<Models.DTRO>> FindDtros(DateTime? minimumPublicationTime)
+    /// <inheritdoc/>
+    public Task<PaginatedResult<Models.DTRO>> FindDtros(DtroSearch search)
     {
         var service = _services.FirstOrDefault(service => service.CanSearch);
 
-        if (service is null)
-        {
-            throw new InvalidOperationException("None of the storage services used is capable of search.");
-        }
+        return service is null
+            ? throw new InvalidOperationException("None of the storage services used is capable of search.")
+            : service.FindDtros(search);
+    }
 
-        return service.FindDtros(minimumPublicationTime);
+    /// <inheritdoc />
+    public Task<List<Models.DTRO>> FindDtros(DtroEventSearch search)
+    {
+        var service = _services.FirstOrDefault(service => service.CanSearch);
+
+        return service is null
+            ? throw new InvalidOperationException("None of the storage services used is capable of search.")
+            : service.FindDtros(search);
     }
 }

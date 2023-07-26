@@ -15,7 +15,7 @@ public class DTROResponseDto
     /// <summary>
     /// The schema identifier of the DTRO data payload being submitted.
     /// </summary>
-    /// <example>3.1.0</example>
+    /// <example>3.1.1</example>
     [DataMember(Name = "schemaVersion")]
     [JsonConverter(typeof(SchemaVersionJsonConverter))]
     public SchemaVersion SchemaVersion { get; set; }

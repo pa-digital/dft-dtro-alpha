@@ -15,22 +15,21 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using DfT.DTRO.Filters;
 using DfT.DTRO.Extensions.DependencyInjection;
-using DfT.DTRO.Services.Storage;
 using DfT.DTRO.Services.Validation;
+using DfT.DTRO.Utilities;
 using Microsoft.FeatureManagement;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Internal;
 using DfT.DTRO.Extensions.Configuration;
 using DfT.DTRO.Services.Data;
 using DfT.DTRO.Services.Conversion;
-using DfT.DTRO.JsonLogic;
-using DfT.DTRO.DAL;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace DfT.DTRO;
 
@@ -111,13 +110,14 @@ public class Startup
         services.AddScoped<IJsonSchemaValidationService, JsonSchemaValidationService>();
         services.AddScoped<ISemanticValidationService, SemanticValidationService>();
         services.AddScoped<IConditionValidationService, ConditionValidationService>();
-        services.AddSingleton<IDtrosFilteringService, DtrosFilteringService>();
         services.AddSingleton<ISpatialProjectionService, Proj4SpatialProjectionService>();
+        services.AddSingleton<IDtroMappingService, DtroMappingService>();
 
         services.AddStorage(Configuration);
         services.AddJsonLogic();
         services.AddRequestCorrelation();
         services.TryAddSingleton<ISystemClock, SystemClock>();
+        services.AddMvc();
     }
 
     /// <summary>
@@ -131,6 +131,7 @@ public class Startup
         app.UseRouting();
 
         app.UseRequestCorrelation();
+        app.UseMiddleware<SecurityHeadersMiddleware>();
 
         app.UseAuthorization();
 

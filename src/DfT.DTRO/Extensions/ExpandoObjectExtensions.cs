@@ -127,6 +127,27 @@ public static class ExpandoObjectExtensions
     }
 
     /// <summary>
+    /// Extension to retrieve DateTime or null from ExpandoObject.
+    /// </summary>
+    /// <param name="source">Object to be queried.</param>
+    /// <param name="key">The key for the DateTime object.</param>
+    /// <returns>A DateTime object.</returns>
+    public static DateTime? GetDateTimeOrNull(this ExpandoObject source, string key)
+    {
+        if (!(source as IDictionary<string, object>).ContainsKey(key))
+        {
+            return null;
+        }
+
+        if (source.GetField(key) is not DateTime result)
+        {
+            throw new InvalidOperationException($"The field under '{key}' was not {typeof(DateTime).FullName}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Gets a value from an Expando object by it's named key.
     /// </summary>
     /// <param name="source">Object to be queried.</param>
@@ -135,7 +156,12 @@ public static class ExpandoObjectExtensions
     /// <returns>A value from an Expando object by it's named key.</returns>
     private static T GetFieldValueOrDefault<T>(this ExpandoObject source, string key)
     {
-        var field = source.GetField(key);
+        var dict = source as IDictionary<string, object>;
+
+        if (!dict.TryGetValue(key, out var field))
+        {
+            return default;
+        }
 
         if (field is long l)
         {
@@ -191,7 +217,12 @@ public static class ExpandoObjectExtensions
     {
         var dict = source as IDictionary<string, object>;
 
-        return dict[key] as IList<object> ?? default;
+        if (dict.TryGetValue(key, out var list) && list is IList<object> typedList)
+        {
+            return typedList;
+        }
+
+        return default;
     }
 
     /// <summary>
@@ -202,6 +233,13 @@ public static class ExpandoObjectExtensions
     /// <returns>An inner-expando object, else returns the default data type.</returns>
     public static ExpandoObject GetExpandoOrDefault(this ExpandoObject source, string key)
     {
-        return source.GetField(key) as ExpandoObject ?? default;
+        var dict = source as IDictionary<string, object>;
+
+        if (dict.TryGetValue(key, out var value) && value is ExpandoObject expando)
+        {
+            return expando;
+        }
+
+        return default;
     }
 }

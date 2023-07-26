@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using System.Runtime.Serialization;
+using DfT.DTRO.Extensions;
 
 namespace DfT.DTRO.Models;
 
@@ -76,4 +79,57 @@ public class DtroEvent
     [DataMember(Name = "_links")]
     public Links Links { get; set; }
 
+    public static DtroEvent FromDeletion(Models.DTRO dtro, string baseUrl, List<DateTime> regulationStartTimes, List<DateTime> regulationEndTimes)
+    {
+        return new DtroEvent
+        {
+            EventType = DtroEventType.Delete,
+            EventTime = dtro.DeletionTime.Value,
+            PublicationTime = dtro.Created.Value,
+            OrderReportingPoint = dtro.OrderReportingPoints,
+            VehicleType = dtro.VehicleTypes,
+            HighwayAuthorityId = dtro.HighwayAuthorityId,
+            RegulationType = dtro.RegulationTypes,
+            TroName = dtro.TroName,
+            RegulationStart = regulationStartTimes,
+            RegulationEnd = regulationEndTimes,
+            Links = new Links { Self = $"{baseUrl}/v1/dtros/{dtro.Id}" }
+        };
+    }
+
+    public static DtroEvent FromCreation(Models.DTRO dtro, string baseUrl, List<DateTime> regulationStartTimes, List<DateTime> regulationEndTimes)
+    {
+        return new DtroEvent
+        {
+            EventType = DtroEventType.Create,
+            EventTime = dtro.Created.Value,
+            PublicationTime = dtro.Created.Value,
+            OrderReportingPoint = dtro.OrderReportingPoints,
+            VehicleType = dtro.VehicleTypes,
+            HighwayAuthorityId = dtro.HighwayAuthorityId,
+            RegulationType = dtro.RegulationTypes,
+            TroName = dtro.TroName,
+            RegulationStart = regulationStartTimes,
+            RegulationEnd = regulationEndTimes,
+            Links = new Links { Self = $"{baseUrl}/v1/dtros/{dtro.Id}" }
+        };
+    }
+
+    public static DtroEvent FromUpdate(Models.DTRO dtro, string baseUrl, List<DateTime> regulationStartTimes, List<DateTime> regulationEndTimes)
+    {
+        return new DtroEvent
+        {
+            EventType = DtroEventType.Update,
+            EventTime = dtro.LastUpdated.Value,
+            PublicationTime = dtro.Created.Value,
+            OrderReportingPoint = dtro.OrderReportingPoints,
+            VehicleType = dtro.VehicleTypes,
+            HighwayAuthorityId = dtro.HighwayAuthorityId,
+            RegulationType = dtro.RegulationTypes,
+            TroName = dtro.TroName,
+            RegulationStart = regulationStartTimes,
+            RegulationEnd = regulationEndTimes,
+            Links = new Links { Self = $"{baseUrl}/v1/dtros/{dtro.Id}" }
+        };
+    }
 }
