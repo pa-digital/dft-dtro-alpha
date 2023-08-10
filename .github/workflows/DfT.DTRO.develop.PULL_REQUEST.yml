@@ -14,6 +14,7 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Setup Postgres Database for tests
       run: docker compose -f docker/dev/docker-compose.yml up -d
     - name: Setup .NET
