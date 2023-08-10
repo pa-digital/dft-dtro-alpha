@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -10,44 +8,44 @@ namespace DfT.DTRO.Models;
 /// <summary>
 /// Bounding box definition.
 /// </summary>
-/// <param name="SouthLatitude">The south latitude of the bounding box.</param>
-/// <param name="NorthLatitude">The north latitude of the bounding box.</param>
-/// <param name="WestLongitude">The west longitude of the bounding box.</param>
-/// <param name="EastLongitude">The east longitude of the bounding box.</param>
-public record struct BoundingBox(double WestLongitude, double SouthLatitude, double EastLongitude, double NorthLatitude)
+/// <param name="westLongitude">The west longitude of the bounding box.</param>
+/// <param name="southLatitude">The south latitude of the bounding box.</param>
+/// <param name="eastLongitude">The east longitude of the bounding box.</param>
+/// <param name="northLatitude">The north latitude of the bounding box.</param>
+public record struct BoundingBox(double westLongitude, double southLatitude, double eastLongitude, double northLatitude)
 {
     /// <summary>
     /// A bounding box that limits allowed coordinates for <c>crs == "osgb36Epsg27700"</c>
     /// <br/><br/>
     /// defined as <c>[-103976.3, -16703.87, 652897.98, 1199851.44]</c>.
     /// </summary>
-    public static readonly BoundingBox ForOsgb36Epsg27700 = new(-103976.3, -16703.87, 652897.98, 1199851.44);
+    public static readonly BoundingBox ForOsgb36Epsg27700 = new (-103976.3, -16703.87, 652897.98, 1199851.44);
 
     /// <summary>
     /// A bounding box that limits allowed coordinates for <c>crs == "osgb36Epsg27700"</c>
     /// <br/><br/>
     /// defined as <c>[-7.5600, 49.9600, 1.7800, 60.8400]</c>.
     /// </summary>
-    public static readonly BoundingBox ForWgs84Epsg4326 = new(-7.5600, 49.9600, 1.7800, 60.8400);
+    public static readonly BoundingBox ForWgs84Epsg4326 = new (-7.5600, 49.9600, 1.7800, 60.8400);
 
     /// <summary>
     /// Checks if the coordinates are within the bounding box.
     /// </summary>
-    /// <param name="latitude">The latitude to verify.</param>
     /// <param name="longitude">The longitude to verify.</param>
+    /// <param name="latitude">The latitude to verify.</param>
     /// <returns>
     /// <see langword="true"/> if the coordinates are within the bounding box;
-    /// otherwise <see langword="false"/>
+    /// otherwise <see langword="false"/>.
     /// </returns>
     public bool Contains(double longitude, double latitude)
-        => latitude >= SouthLatitude && latitude <= NorthLatitude &&
-            longitude >= WestLongitude && longitude <= EastLongitude;
+        => latitude >= southLatitude && latitude <= northLatitude &&
+            longitude >= westLongitude && longitude <= eastLongitude;
 
     /// <summary>
     /// Checks if the coordinates are within the bounding box.
     /// </summary>
-    /// <param name="latitude">The latitude to verify.</param>
     /// <param name="longitude">The longitude to verify.</param>
+    /// <param name="latitude">The latitude to verify.</param>
     /// <param name="errors">
     /// A <see cref="BoundingBoxErrors"/> object that explains the errors.
     /// <br/><br/>
@@ -55,33 +53,33 @@ public record struct BoundingBox(double WestLongitude, double SouthLatitude, dou
     /// </param>
     /// <returns>
     /// <see langword="true"/> if the coordinates are within the bounding box;
-    /// otherwise <see langword="false"/>
+    /// otherwise <see langword="false"/>.
     /// </returns>
     public bool Contains(double longitude, double latitude, [NotNullWhen(false)] out BoundingBoxErrors errors)
     {
         string longitudeError = null, latitudeError = null;
 
-        if (longitude <= WestLongitude)
+        if (longitude <= westLongitude)
         {
-            longitudeError = $"{longitude} is below the minimum longitude of {WestLongitude}.";
+            longitudeError = $"{longitude} is below the minimum longitude of {westLongitude}.";
         }
-        else if (longitude >= EastLongitude)
+        else if (longitude >= eastLongitude)
         {
-            longitudeError = $"{longitude} is above the maximum longitude of {EastLongitude}.";
+            longitudeError = $"{longitude} is above the maximum longitude of {eastLongitude}.";
         }
 
-        if (latitude <= SouthLatitude)
+        if (latitude <= southLatitude)
         {
-            latitudeError = $"{latitude} is below the minimum latitude of {SouthLatitude}.";
+            latitudeError = $"{latitude} is below the minimum latitude of {southLatitude}.";
         }
-        else if (latitude >= NorthLatitude)
+        else if (latitude >= northLatitude)
         {
-            latitudeError = $"{latitude} is above the maximum latitude of {NorthLatitude}.";
+            latitudeError = $"{latitude} is above the maximum latitude of {northLatitude}.";
         }
 
         if (latitudeError is not null || longitudeError is not null)
         {
-            errors = new()
+            errors = new BoundingBoxErrors
             {
                 LatitudeError = latitudeError,
                 LongitudeError = longitudeError,
@@ -99,10 +97,10 @@ public record struct BoundingBox(double WestLongitude, double SouthLatitude, dou
     /// <param name="coordinates">The coordinates to verify.</param>
     /// <returns>
     /// <see langword="true"/> if the coordinates are within the bounding box;
-    /// otherwise <see langword="false"/>
+    /// otherwise <see langword="false"/>.
     /// </returns>
     public bool Contains(Coordinates coordinates)
-        => Contains(coordinates.Longitude, coordinates.Latitude);
+        => Contains(coordinates.longitude, coordinates.latitude);
 
     /// <summary>
     /// Checks if the coordinates are within the bounding box.
@@ -115,10 +113,10 @@ public record struct BoundingBox(double WestLongitude, double SouthLatitude, dou
     /// </param>
     /// <returns>
     /// <see langword="true"/> if the coordinates are within the bounding box;
-    /// otherwise <see langword="false"/>
+    /// otherwise <see langword="false"/>.
     /// </returns>
     public bool Contains(Coordinates coordinates, [NotNullWhen(false)] out BoundingBoxErrors errors)
-        => Contains(coordinates.Longitude, coordinates.Latitude, out errors);
+        => Contains(coordinates.longitude, coordinates.latitude, out errors);
 
     /// <summary>
     /// Creates a minimal <see cref="BoundingBox"/> that contains all of the provided coordinates.
@@ -137,17 +135,18 @@ public record struct BoundingBox(double WestLongitude, double SouthLatitude, dou
     /// <see langword="true"/> if the overlap exists; otherwise <see langword="false"/>.
     /// </returns>
     public bool Overlaps(BoundingBox other)
-        => SouthLatitude <= other.NorthLatitude &&
-            other.SouthLatitude <= NorthLatitude &&
-            WestLongitude <= other.EastLongitude &&
-            other.WestLongitude <= EastLongitude;
+        => southLatitude <= other.northLatitude &&
+            other.southLatitude <= northLatitude &&
+            westLongitude <= other.eastLongitude &&
+            other.westLongitude <= eastLongitude;
 
     /// <summary>
     /// Converts a <see cref="BoundingBox"/> to an <see cref="NpgsqlBox"/>.
     /// </summary>
-    /// <param name="bbox"></param>
     public static implicit operator NpgsqlBox(BoundingBox bbox)
-        => new(bbox.NorthLatitude, bbox.EastLongitude, bbox.SouthLatitude, bbox.WestLongitude);
+    {
+        return new NpgsqlBox(bbox.northLatitude, bbox.eastLongitude, bbox.southLatitude, bbox.westLongitude);
+    }
 
     /// <summary>
     /// Creates a minimal <see cref="BoundingBox"/> that contains all of the provided coordinates.
@@ -162,21 +161,22 @@ public record struct BoundingBox(double WestLongitude, double SouthLatitude, dou
 
         foreach (var coord in coordinates.Skip(1))
         {
-            if (coord.Latitude < south)
+            if (coord.latitude < south)
             {
-                south = coord.Latitude;
+                south = coord.latitude;
             }
-            else if (coord.Latitude > north)
+            else if (coord.latitude > north)
             {
-                north = coord.Latitude;
+                north = coord.latitude;
             }
-            if (coord.Longitude < west)
+
+            if (coord.longitude < west)
             {
-                west = coord.Longitude;
+                west = coord.longitude;
             }
-            else if (coord.Longitude > east)
+            else if (coord.longitude > east)
             {
-                east = coord.Longitude;
+                east = coord.longitude;
             }
         }
 
@@ -190,12 +190,12 @@ public record struct BoundingBox(double WestLongitude, double SouthLatitude, dou
 public class BoundingBoxErrors
 {
     /// <summary>
-    /// Longitude related error explanation
+    /// Gets longitude related error explanation.
     /// </summary>
-    public string LongitudeError;
+    public string LongitudeError { get; init; }
 
     /// <summary>
-    /// Latitude related error explanation
+    /// Gets latitude related error explanation.
     /// </summary>
-    public string LatitudeError;
+    public string LatitudeError { get; init; }
 }

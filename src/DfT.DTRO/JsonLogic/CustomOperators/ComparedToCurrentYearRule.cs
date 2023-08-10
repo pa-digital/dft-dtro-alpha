@@ -18,17 +18,17 @@ public class ComparedToCurrentYearRule : Rule
     /// <summary>
     /// The value to compare against current year.
     /// </summary>
-    protected internal readonly Rule Value;
+    protected internal Rule Value { get; }
 
     /// <summary>
     /// The operator to use for the comparison.
     /// </summary>
-    protected internal readonly Rule Operator;
+    protected internal Rule Operator { get; }
 
     /// <summary>
     /// Map between a string operator and a predicate to apply to the year.
     /// </summary>
-    protected internal ReadOnlyDictionary<string, Func<int, int, bool>> _operatorToPredicate = new(
+    protected internal ReadOnlyDictionary<string, Func<int, int, bool>> OperatorToPredicate { get; } = new (
         new Dictionary<string, Func<int, int, bool>>
         {
             { "==", (l, r) => l == r },
@@ -37,8 +37,7 @@ public class ComparedToCurrentYearRule : Rule
             { ">=", (l, r) => l >= r },
             { "<", (l, r) => l < r },
             { ">", (l, r) => l > r }
-        }
-    );
+        });
 
     /// <summary>
     /// The default operator.
@@ -69,7 +68,7 @@ public class ComparedToCurrentYearRule : Rule
             return false;
         }
 
-        if (!_operatorToPredicate.TryGetValue(operation, out Func<int, int, bool> predicate))
+        if (!OperatorToPredicate.TryGetValue(operation, out Func<int, int, bool> predicate))
         {
             return false;
         }
@@ -84,14 +83,16 @@ public class ComparedToCurrentYearRule : Rule
 public class ComparedToCurrentYearRuleConverter : JsonConverter<ComparedToCurrentYearRule>
 {
     /// <inheritdoc />
-    public override ComparedToCurrentYearRule Read(ref Utf8JsonReader reader, Type typeToConvert,
+    public override ComparedToCurrentYearRule Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
         JsonSerializerOptions options)
     {
         JsonNode node = JsonSerializer.Deserialize<JsonNode>(ref reader, options);
 
         Rule[] parameters = node is JsonArray
             ? node.Deserialize<Rule[]>()
-            : new[] { node.Deserialize<Rule>()! };
+            : new[] { node.Deserialize<Rule>() ! };
 
         if (parameters.Length != 2)
         {
@@ -104,7 +105,7 @@ public class ComparedToCurrentYearRuleConverter : JsonConverter<ComparedToCurren
     /// <inheritdoc />
     public override void Write(Utf8JsonWriter writer, ComparedToCurrentYearRule value, JsonSerializerOptions options)
     {
-        List<Rule> rules = new() { value.Value, value.Operator };
+        List<Rule> rules = new () { value.Value, value.Operator };
 
         writer.WriteStartObject();
         writer.WritePropertyName("compared_to_current_year");

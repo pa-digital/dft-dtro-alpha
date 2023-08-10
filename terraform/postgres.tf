@@ -46,6 +46,13 @@ module "postgres_db" {
   maintenance_window_hour         = 3
   maintenance_window_update_track = "stable"
 
+  database_flags = [
+    {
+      name  = "max_connections"
+      value = var.database_max_connections
+    }
+  ]
+
   # Basic, single region backups 
   backup_configuration = {
     enabled                        = true

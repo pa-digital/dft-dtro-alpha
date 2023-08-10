@@ -9,7 +9,8 @@ RUN dotnet restore
 
 # copy everything else and build
 COPY . ./
-RUN dotnet publish -c Release -o out
+RUN dotnet restore -r alpine-x64 /p:PublishReadyToRun=true
+RUN dotnet publish --framework net6.0 -o out -c Release -r alpine-x64 --self-contained true /p:PublishTrimmed=true /p:PublishReadyToRun=true /p:PublishSingleFile=true
 
 # build common runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS runtime
@@ -24,7 +25,7 @@ FROM runtime AS publish-service
 ENV FeatureManagement__DtroWrite=True
 ENV FeatureManagement__SchemasRead=True
 
-ENTRYPOINT ["dotnet", "DfT.DTRO.dll"]
+ENTRYPOINT ["./DfT.DTRO"]
 
 # build runtime image for search service
 FROM runtime AS search-service
@@ -33,7 +34,7 @@ COPY --from=build-env /app/out .
 
 ENV FeatureManagement__DtroRead=True
 
-ENTRYPOINT ["dotnet", "DfT.DTRO.dll"]
+ENTRYPOINT ["./DfT.DTRO"]
 
 # build image for Postgres migrations job
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS postgres-migrations-job

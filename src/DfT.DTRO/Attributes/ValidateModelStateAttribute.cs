@@ -8,14 +8,14 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace DfT.DTRO.Attributes;
 
     /// <summary>
-    /// Model state validation attribute
+    /// Model state validation attribute.
     /// </summary>
     public class ValidateModelStateAttribute : ActionFilterAttribute
     {
         /// <summary>
-        /// Called before the action method is invoked
+        /// Called before the action method is invoked.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="context">The <see cref="T:Microsoft.AspNetCore.Mvc.ActionContext" />.</param>
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             // Per https://blog.markvincze.com/how-to-validate-action-parameters-with-dataannotation-attributes/
@@ -26,7 +26,7 @@ namespace DfT.DTRO.Attributes;
                 {
                     object args = null;
                     if (context.ActionArguments.ContainsKey(parameter.Name))
-                    { 
+                    {
                         args = context.ActionArguments[parameter.Name];
                     }
 

@@ -46,6 +46,12 @@ variable "search_service_image" {
   default     = "dtro-prototype-search"
 }
 
+variable "db_connections_per_cloud_run_instance" {
+  type        = number
+  default     = 2
+  description = "Maximum size of DB connection pool for each Cloud Run instance"
+}
+
 variable "tag" {
   type        = string
   description = "The tag of the image to run."
@@ -55,7 +61,7 @@ variable "tag" {
 variable "allowed_ips" {
   description = "IPs permitted to access the prototype"
   type        = list(any)
-  default = []
+  default     = []
 }
 
 variable "publish_service_domain" {
@@ -86,6 +92,12 @@ variable "feature_write_to_bucket" {
   description = "Feature flag, when enabled data is written to Cloud Storage bucket"
 }
 
+variable "feature_enable_redis_cache" {
+  type        = bool
+  description = "Feature flag, when enabled MemoryStore (Redis) cache instance is configured and used by the app"
+  default     = false
+}
+
 variable "database_zone" {
   type        = string
   description = "Primary zone for the Postgres database"
@@ -114,6 +126,13 @@ variable "database_disk_autoresize_limit" {
   type        = string
   description = "Upper limit for Postgres database disk auto resize"
   default     = 30
+}
+
+variable "database_max_connections" {
+  type        = number
+  description = "Maximum number of connections allowed by the Postgres database"
+  # 25 is Cloud SQL's default value for tiny instance (https://cloud.google.com/sql/docs/postgres/flags#postgres-m)
+  default = 25
 }
 
 variable "database_backups_pitr_enabled" {
@@ -157,4 +176,10 @@ variable "serverless_connector_ip_range" {
   type        = string
   description = "IP range for Serverless VPC Access Connector"
   default     = "10.64.0.0/28" # CIDR block with "/28" netmask is required
+}
+
+variable "redis_memory_size" {
+  type        = string
+  description = "Redis memory size in GiB"
+  default     = 1
 }

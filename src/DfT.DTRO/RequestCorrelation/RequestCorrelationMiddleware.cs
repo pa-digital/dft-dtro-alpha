@@ -17,7 +17,7 @@ public class RequestCorrelationMiddleware : IMiddleware
     private readonly RequestCorrelationOptions _options;
 
     /// <summary>
-    /// The default constructor
+    /// The default constructor.
     /// </summary>
     /// <param name="logger">An <see cref="ILogger"/> instance.</param>
     /// <param name="options">The request correlation configuration.</param>

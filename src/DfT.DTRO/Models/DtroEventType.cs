@@ -9,10 +9,12 @@ public enum DtroEventType
     /// A creation event.
     /// </summary>
     Create,
+
     /// <summary>
     /// An update event.
     /// </summary>
     Update,
+
     /// <summary>
     /// A soft-deletion event.
     /// </summary>

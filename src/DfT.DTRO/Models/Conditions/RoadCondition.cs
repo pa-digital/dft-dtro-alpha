@@ -1,10 +1,12 @@
-﻿using DfT.DTRO.Models.Conditions.Base;
+﻿using System.Text.Json.Serialization;
+using DfT.DTRO.Models.Conditions.Base;
 
 namespace DfT.DTRO.Models.Conditions;
 
 /// <summary>
 /// The types of road referenced in <see cref="RoadCondition"/>.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum RoadType
 {
     /// <summary>

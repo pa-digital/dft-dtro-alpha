@@ -21,7 +21,7 @@ public class ConditionValidationService : IConditionValidationService
 
         if (dnf.All(it => it.Pairs().Any(it => it.Item1.Contradicts(it.Item2))))
         {
-            errors.Add(new SemanticValidationError() { Message = "The expression is always false."});
+            errors.Add(new SemanticValidationError { Message = "The expression is always false." });
         }
 
         return errors;
@@ -50,11 +50,13 @@ public class ConditionValidationService : IConditionValidationService
 
         return new ConditionDnf { new ConditionConjunction { condition } };
     }
+
     private ConditionDnf ToDnf(ConditionSet conditions)
         => conditions.Operator switch
         {
             ConditionSet.OperatorType.And => AndToDnf(conditions),
             ConditionSet.OperatorType.Or => OrToDnf(conditions),
+
             // ConditionSet.OperatorType.XOr is invalid as it should be expanded earlier,
             _ => throw new InvalidOperationException()
         };
@@ -68,6 +70,7 @@ public class ConditionValidationService : IConditionValidationService
 
         return target;
     }
+
     private ConditionSet PropagateNegation(ConditionSet conditionSet)
     {
         var newConditions = new List<Condition>();
@@ -94,6 +97,7 @@ public class ConditionValidationService : IConditionValidationService
 
         return new ConditionSet(newConditions, conditionSet.Operator);
     }
+
     private Condition ExpandXOr(Condition target)
     {
         if (target is ConditionSet conditions)
@@ -103,6 +107,7 @@ public class ConditionValidationService : IConditionValidationService
 
         return target;
     }
+
     private ConditionSet ExpandXOr(ConditionSet conditions)
     {
         var newConditions = new List<Condition>();
@@ -129,18 +134,19 @@ public class ConditionValidationService : IConditionValidationService
 
         return expanded;
     }
+
     private ConditionSet ExpandXOr(Condition left, Condition right)
     {
         left = ExpandXOr(left);
         right = ExpandXOr(right);
 
         // (left || right) && !(left && right)
-        return 
+        return
             ConditionSet.And(
                 ConditionSet.Or(left, right),
-                ConditionSet.And(left, right).Negated()
-            );
+                ConditionSet.And(left, right).Negated());
     }
+
     private ConditionDnf AndToDnf(ConditionSet conditions)
     {
         var result = DnfConjunction(ToDnf(conditions.ElementAt(0)), ToDnf(conditions.ElementAt(1)));
@@ -152,6 +158,7 @@ public class ConditionValidationService : IConditionValidationService
 
         return result;
     }
+
     private ConditionDnf OrToDnf(ConditionSet conditions)
     {
         var result = DnfDisjunction(ToDnf(conditions.ElementAt(0)), ToDnf(conditions.ElementAt(1)));

@@ -16,7 +16,6 @@ public class DtroSearch : PaginatedRequest
     [MinLength(1)]
     public IEnumerable<SearchQuery> Queries { get; set; }
 
-
     /// <summary>
     /// Returns a search criteria as a JSON string.
     /// </summary>

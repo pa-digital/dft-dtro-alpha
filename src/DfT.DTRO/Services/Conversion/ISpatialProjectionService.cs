@@ -13,14 +13,12 @@ public interface ISpatialProjectionService
     /// <param name="coordinates">The coordinates to project.</param>
     /// <returns>The coordinates resulting from the projection.</returns>
     Coordinates Wgs84ToOsgb36(Coordinates coordinates)
-        => Wgs84ToOsgb36(coordinates.Longitude, coordinates.Latitude);
+        => Wgs84ToOsgb36(coordinates.longitude, coordinates.latitude);
 
     /// <summary>
     /// Projects coordinates from wgs84epsg4326 to osgb36epsg27700
     /// and produces a result of type <see cref="Coordinates"/>.
     /// </summary>
-    /// <param name="longitude"></param>
-    /// <param name="latitude"></param>
     /// <returns>The coordinates resulting from the projection.</returns>
     Coordinates Wgs84ToOsgb36(double longitude, double latitude);
 
@@ -31,19 +29,30 @@ public interface ISpatialProjectionService
     /// <returns>The coordinates resulting from the projection.</returns>
     BoundingBox Wgs84ToOsgb36(BoundingBox boundingBox)
         => Wgs84ToOsgb36(
-            boundingBox.WestLongitude,
-            boundingBox.SouthLatitude,
-            boundingBox.EastLongitude,
-            boundingBox.NorthLatitude);
+            boundingBox.westLongitude,
+            boundingBox.southLatitude,
+            boundingBox.eastLongitude,
+            boundingBox.northLatitude);
 
     /// <summary>
     /// Projects bounding box coordinates from wgs84epsg4326 to osgb36epsg27700
     /// and produces a result of type <see cref="BoundingBox"/>.
     /// </summary>
-    /// <param name="eastLongitude"></param>
-    /// <param name="southLatitude"></param>
-    /// <param name="westLongitude"></param>
-    /// <param name="northLatitude"></param>
+    /// <param name="westLongitude">West Longitude.</param>
+    /// <param name="southLatitude">South Latitude.</param>
+    /// <param name="eastLongitude">East Longitude.</param>
+    /// <param name="northLatitude">Nort Latitude.</param>
     /// <returns>The bounding box resulting from the projection.</returns>
     BoundingBox Wgs84ToOsgb36(double westLongitude, double southLatitude, double eastLongitude, double northLatitude);
+
+    /// <summary>
+    /// Projects bounding box coordinates from osgb36epsg27700 to wgs84epsg4326
+    /// and produces a result of type <see cref="BoundingBox" />.
+    /// </summary>
+    /// <param name="eastLongitude">East Longitude.</param>
+    /// <param name="southLatitude">South Latitude.</param>
+    /// <param name="westLongitude">West Longitude.</param>
+    /// <param name="northLatitude">Nort Latitude.</param>
+    /// <returns>The bounding box resulting from the projection.</returns>
+    BoundingBox Osgb36ToWgs84(double eastLongitude, double southLatitude, double westLongitude, double northLatitude);
 }

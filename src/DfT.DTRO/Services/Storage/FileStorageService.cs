@@ -10,7 +10,6 @@ using DfT.DTRO.Models.Pagination;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace DfT.DTRO.Services.Storage;
@@ -25,7 +24,7 @@ public class FileStorageService : IStorageService
     private string _bucket;
 
     /// <summary>
-    /// Informs whether this <see cref="IStorageService"/>
+    /// Gets a value indicating whether this <see cref="IStorageService"/>
     /// implementation is capable of searching dtros.
     /// <br/><br/>
     /// Always <see langword="false"/> in case of <see cref="FileStorageService"/>.
@@ -43,30 +42,6 @@ public class FileStorageService : IStorageService
     }
 
     /// <inheritdoc />
-    public async Task SaveDtroAsJson(Guid id, JObject jsonContent)
-    {
-        var storageClient = StorageClient.Create();
-        await storageClient.UploadObjectAsync(
-            _bucket,
-            $"{id}.json",
-            "application/json",
-            GenerateStreamFromString(jsonContent.ToString())
-        );
-    }
-
-    /// <inheritdoc />
-    public async Task UpdateDtroAsJson(Guid id, JObject jsonContent)
-    {
-        var storageClient = StorageClient.Create();
-
-        var metadata = await storageClient.GetObjectAsync(_bucket, $"{id}.json");
-        await storageClient.UploadObjectAsync(
-            metadata,
-            GenerateStreamFromString(jsonContent.ToString())
-        );
-    }
-
-    /// <inheritdoc />    
     public async Task<Models.DTRO> GetDtroById(Guid id)
     {
         var dtroAsString = await GetDtroAsString(id);
@@ -76,34 +51,8 @@ public class FileStorageService : IStorageService
         return result;
     }
 
-    private async Task<string> GetDtroAsString(Guid id)
-    {
-        var storageClient = StorageClient.Create();
-
-        using Stream stream = new MemoryStream();
-        await storageClient.DownloadObjectAsync(_bucket, $"{id}.json", stream);
-        stream.Seek(0, SeekOrigin.Begin);
-        using var reader = new StreamReader(stream);
-        return reader.ReadToEnd();
-    }
-
-    /// <summary>
-    /// Private helper for creating a stream from a string.
-    /// </summary>
-    /// <param name="s">The string to be rendered to a Stream.</param>
-    /// <returns><see cref="Stream"/></returns>
-    private static Stream GenerateStreamFromString(string s)
-    {
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
-        writer.Write(s);
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
-    }
-
-    /// <inheritdoc /> 
-    public async Task SaveDtroAsJson(Guid id, object data)
+    /// <inheritdoc />
+    public async Task SaveDtroAsJson(Guid id, Models.DTRO data)
     {
         var storageClient = StorageClient.Create();
         await storageClient
@@ -111,12 +60,11 @@ public class FileStorageService : IStorageService
                 _bucket,
                 $"{id}.json",
                 "application/json",
-                GenerateStreamFromString(JsonConvert.SerializeObject(data))
-            );
+                GenerateStreamFromString(JsonConvert.SerializeObject(data)));
     }
 
     /// <inheritdoc />
-    public async Task UpdateDtroAsJson(Guid id, object data)
+    public async Task UpdateDtroAsJson(Guid id, Models.DTRO data)
     {
         var props = data.GetType().GetProperties();
 
@@ -142,8 +90,7 @@ public class FileStorageService : IStorageService
                 _bucket,
                 $"{id}.json",
                 "application/json",
-                GenerateStreamFromString(JsonConvert.SerializeObject(existing))
-            );
+                GenerateStreamFromString(JsonConvert.SerializeObject(existing)));
     }
 
     /// <inheritdoc/>
@@ -168,8 +115,7 @@ public class FileStorageService : IStorageService
                 _bucket,
                 $"{id}.json",
                 "application/json",
-                GenerateStreamFromString(JsonConvert.SerializeObject(existing))
-            );
+                GenerateStreamFromString(JsonConvert.SerializeObject(existing)));
 
         return true;
     }
@@ -192,11 +138,14 @@ public class FileStorageService : IStorageService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> TryUpdateDtroAsJson(Guid id, object data)
+    public async Task<bool> TryUpdateDtroAsJson(Guid id, Models.DTRO data)
     {
         var existing = await GetDtroById(id);
 
-        if (existing.Deleted) { return false; }
+        if (existing.Deleted)
+        {
+            return false;
+        }
 
         var props = data.GetType().GetProperties();
 
@@ -220,8 +169,7 @@ public class FileStorageService : IStorageService
                 _bucket,
                 $"{id}.json",
                 "application/json",
-                GenerateStreamFromString(JsonConvert.SerializeObject(existing))
-            );
+                GenerateStreamFromString(JsonConvert.SerializeObject(existing)));
 
         return true;
     }
@@ -236,5 +184,31 @@ public class FileStorageService : IStorageService
     public Task<List<Models.DTRO>> FindDtros(DtroEventSearch search)
     {
         throw new NotImplementedException("Operation not available for FileStorageService.");
+    }
+
+    /// <summary>
+    /// Private helper for creating a stream from a string.
+    /// </summary>
+    /// <param name="s">The string to be rendered to a Stream.</param>
+    /// <returns><see cref="Stream"/>.</returns>
+    private static Stream GenerateStreamFromString(string s)
+    {
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+        writer.Write(s);
+        writer.Flush();
+        stream.Position = 0;
+        return stream;
+    }
+
+    private async Task<string> GetDtroAsString(Guid id)
+    {
+        StorageClient storageClient = StorageClient.Create();
+
+        using Stream stream = new MemoryStream();
+        await storageClient.DownloadObjectAsync(_bucket, $"{id}.json", stream);
+        stream.Seek(0, SeekOrigin.Begin);
+        using StreamReader reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 }

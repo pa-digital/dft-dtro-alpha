@@ -10,7 +10,7 @@ public class ApiErrorResponse
     /// <summary>
     /// The nature of the error.
     /// </summary>
-    /// <value>Description of the error</value>
+    /// <value>Description of the error.</value>
     public string Message { get; set; }
 
     /// <summary>
@@ -39,5 +39,12 @@ public class ApiErrorResponse
     {
         Message = message;
         Errors = new List<object> { error };
+    }
+
+    /// <summary>
+    /// Default constructor.
+    /// </summary>
+    public ApiErrorResponse()
+    {
     }
 }

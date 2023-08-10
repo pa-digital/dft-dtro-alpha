@@ -7,20 +7,22 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>DfT.DTRO</AssemblyName>
     <PackageId>DfT.DTRO</PackageId>
+    <CodeAnalysisRuleSet>stylecop.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DotSpatial.Projections" Version="4.0.656" />
     <PackageReference Include="Google.Cloud.Storage.V1" Version="4.5.0" />
     <PackageReference Include="JsonLogic" Version="4.0.4" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="4.1.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.19">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.12">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.19">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.12">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="6.0.20" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.5.1" />
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.8" />
@@ -29,6 +31,10 @@
     <PackageReference Include="Serilog.Expressions" Version="3.4.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.GoogleCloudLogging" Version="5.0.0" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="5.5.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.5.1" />

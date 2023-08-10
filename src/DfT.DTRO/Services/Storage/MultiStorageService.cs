@@ -6,7 +6,6 @@ using DfT.DTRO.Models;
 using DfT.DTRO.Models.Filtering;
 using DfT.DTRO.Models.Pagination;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace DfT.DTRO.Services.Storage;
 
@@ -19,11 +18,12 @@ public class MultiStorageService : IStorageService
 {
     private readonly IEnumerable<IStorageService> _services;
     private readonly ILogger<MultiStorageService> _logger;
-    //TODO: Let's make sure this goes away after we resolve this.
+
+    // TODO: Let's make sure this goes away after we resolve this.
     private readonly bool _writeToBucketOnly;
 
     /// <summary>
-    /// Informs whether this <see cref="IStorageService"/>
+    /// Gets a value indicating whether this <see cref="IStorageService"/>
     /// implementation is capable of searching dtros.
     /// <br/><br/>
     /// The result depends on the services this <see cref="MultiStorageService"/> is using.
@@ -38,15 +38,15 @@ public class MultiStorageService : IStorageService
     /// that this <see cref="MultiStorageService"/> will delegate to.
     /// </param>
     /// <param name="logger">A logger to be used by this service.</param>
-    /// <param name="WriteToBucketOnly">Indicates whether Postgres should be used for writing data.</param>
+    /// <param name="writeToBucketOnly">Indicates whether Postgres should be used for writing data.</param>
     public MultiStorageService(
         IEnumerable<IStorageService> services,
         ILogger<MultiStorageService> logger,
-        bool WriteToBucketOnly)
+        bool writeToBucketOnly)
     {
         _services = services;
         _logger = logger;
-        _writeToBucketOnly = WriteToBucketOnly;
+        _writeToBucketOnly = writeToBucketOnly;
     }
 
     /// <inheritdoc/>
@@ -63,8 +63,10 @@ public class MultiStorageService : IStorageService
             catch (Exception ex)
             {
                 _logger.LogWarning(
-                    ex, "Getting DTRO with Id {dtroId} from storage service of type '{storageServiceType}' failed.",
-                    id, service.GetType().Name);
+                    ex,
+                    "Getting DTRO with Id {dtroId} from storage service of type '{storageServiceType}' failed.",
+                    id,
+                    service.GetType().Name);
                 exceptions.Add(ex);
             }
         }
@@ -73,22 +75,7 @@ public class MultiStorageService : IStorageService
     }
 
     /// <inheritdoc/>
-    public async Task SaveDtroAsJson(Guid id, JObject jsonContent)
-    {
-        if (_writeToBucketOnly)
-        {
-            await _services.OfType<FileStorageService>().First().SaveDtroAsJson(id, jsonContent);
-            return;
-        }
-
-        foreach (var service in _services)
-        {
-            await service.SaveDtroAsJson(id, jsonContent);
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task SaveDtroAsJson(Guid id, object data)
+    public async Task SaveDtroAsJson(Guid id, Models.DTRO data)
     {
         if (_writeToBucketOnly)
         {
@@ -103,22 +90,7 @@ public class MultiStorageService : IStorageService
     }
 
     /// <inheritdoc/>
-    public async Task UpdateDtroAsJson(Guid id, JObject jsonContent)
-    {
-        if (_writeToBucketOnly)
-        {
-            await _services.OfType<FileStorageService>().First().UpdateDtroAsJson(id, jsonContent);
-            return;
-        }
-
-        foreach (var service in _services)
-        {
-            await service.UpdateDtroAsJson(id, jsonContent);
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task UpdateDtroAsJson(Guid id, object data)
+    public async Task UpdateDtroAsJson(Guid id, Models.DTRO data)
     {
         if (_writeToBucketOnly)
         {
@@ -133,7 +105,7 @@ public class MultiStorageService : IStorageService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> TryUpdateDtroAsJson(Guid id, object data)
+    public async Task<bool> TryUpdateDtroAsJson(Guid id, Models.DTRO data)
     {
         if (_writeToBucketOnly)
         {
@@ -170,7 +142,7 @@ public class MultiStorageService : IStorageService
             if (!res)
             {
                 return false;
-            } 
+            }
         }
 
         return true;
@@ -179,7 +151,7 @@ public class MultiStorageService : IStorageService
     /// <inheritdoc/>
     public async Task<bool> DtroExists(Guid id)
     {
-        List<Exception> exceptions = new();
+        List<Exception> exceptions = new ();
 
         if (_writeToBucketOnly)
         {
@@ -195,8 +167,10 @@ public class MultiStorageService : IStorageService
             catch (Exception ex)
             {
                 _logger.LogWarning(
-                    ex, "Checking if DTRO with Id {dtroId} exists in storage service of type '{storageServiceType}' failed.",
-                    id, service.GetType().Name);
+                    ex,
+                    "Checking if DTRO with Id {dtroId} exists in storage service of type '{storageServiceType}' failed.",
+                    id,
+                    service.GetType().Name);
                 exceptions.Add(ex);
             }
         }

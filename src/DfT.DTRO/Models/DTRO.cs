@@ -29,20 +29,21 @@ public class DTRO
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     [Column(TypeName = "uuid")]
     public Guid Id { get; set; }
-    
+
     /// <summary>
     /// The schema identifier of the DTRO data payload being submitted.
     /// </summary>
-    /// <example>3.1.1</example>
+    /// <example>3.1.1.</example>
     [Required(ErrorMessage = "schemaVersion field must be included")]
-    [DataMember(Name="schemaVersion")]
+    [DataMember(Name = "schemaVersion")]
     [JsonConverter(typeof(SchemaVersionJsonConverter))]
     public SchemaVersion SchemaVersion { get; set; }
 
     /// <summary>
     /// Timestamp that represents the creation time of this document.
     /// </summary>
-    [DataMember(Name = "created"), SaveOnce]
+    [DataMember(Name = "created")]
+    [SaveOnce]
     [SwaggerSchema(ReadOnly = true)]
     public DateTime? Created { get; set; }
 
@@ -64,21 +65,22 @@ public class DTRO
     public DateTime? RegulationEnd { get; set; }
 
     /// <summary>
-    /// The unique identifier of the highway authority creating the DTRO.
+    /// The unique identifier of the traffic authority creating the DTRO.
     /// </summary>
-    [DataMember(Name = "ha")]
-    [Column("HA")]
-    public int HighwayAuthorityId { get; set; }
+    [DataMember(Name = "ta")]
+    [Column("TA")]
+    public int TrafficAuthorityId { get; set; }
 
     /// <summary>
-    /// The descriptive name of the DTRO
+    /// The descriptive name of the DTRO.
     /// </summary>
     public string TroName { get; set; }
 
     /// <summary>
     /// Correlation ID of the request with which this DTRO was created.
     /// </summary>
-    [DataMember(Name = "createdCorrelationId"), SaveOnce]
+    [DataMember(Name = "createdCorrelationId")]
+    [SaveOnce]
     [SwaggerSchema(ReadOnly = true)]
     public string CreatedCorrelationId { get; set; }
 
@@ -122,7 +124,7 @@ public class DTRO
     /// Unique vehicle types that this DTRO applies to.
     /// </summary>
     public List<string> VehicleTypes { get; set; }
-    
+
     /// <summary>
     /// Unique order reporting points that this DTRO applies to.
     /// </summary>
@@ -162,13 +164,15 @@ public class DTRO
             .SelectMany(it => it.GetValue<IList<object>>("regulations").OfType<ExpandoObject>())
             .ToList();
 
-        HighwayAuthorityId = Data.GetValueOrDefault<int>("source.ha");
+        TrafficAuthorityId = Data.GetExpando("source").HasField("ta")
+            ? Data.GetValueOrDefault<int>("source.ta")
+            : Data.GetValueOrDefault<int>("source.ha");
         TroName = Data.GetValueOrDefault<string>("source.troName");
         RegulationTypes = regulations.Select(it => it.GetValueOrDefault<string>("regulationType"))
             .Where(it => it is not null)
             .Distinct()
             .ToList();
-        
+
         VehicleTypes = regulations.SelectMany(it => it.GetListOrDefault("conditions") ?? Enumerable.Empty<object>())
             .Where(it => it is not null)
             .OfType<ExpandoObject>()
@@ -178,7 +182,7 @@ public class DTRO
             .OfType<string>()
             .Distinct()
             .ToList();
-        
+
         OrderReportingPoints = Data.GetValueOrDefault<IList<object>>("source.provision")
             .OfType<ExpandoObject>()
             .Select(it => it.GetValue<string>("orderReportingPoint"))
@@ -199,9 +203,11 @@ public class DTRO
 
             var result = type switch
             {
-                "Polygon" => coords.OfType<IList<object>>().SelectMany(it => it).OfType<IList<object>>().Select(it => new Coordinates((double)it[0], (double)it[1])),
-                "LineString" => coords.OfType<IList<object>>().Select(it => new Coordinates((double)it[0], (double)it[1])),
-                "Point" => new List<Coordinates> { new Coordinates((double) coords[0], (double) coords[1]) },
+                "Polygon" => coords.OfType<IList<object>>().SelectMany(it => it).OfType<IList<object>>()
+                    .Select(it => new Coordinates((double)it[0], (double)it[1])),
+                "LineString" => coords.OfType<IList<object>>()
+                    .Select(it => new Coordinates((double)it[0], (double)it[1])),
+                "Point" => new List<Coordinates> { new ((double)coords[0], (double)coords[1]) },
                 _ => throw new InvalidOperationException($"Coordinate type '{type}' unsupported.")
             };
 

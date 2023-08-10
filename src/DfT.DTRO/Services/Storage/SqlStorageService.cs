@@ -11,9 +11,8 @@ using DfT.DTRO.Models;
 using DfT.DTRO.Models.Filtering;
 using DfT.DTRO.Models.Pagination;
 using DfT.DTRO.Services.Conversion;
+using DfT.DTRO.Services.Data;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using static DfT.DTRO.Extensions.ExpressionExtensions;
 
@@ -27,9 +26,10 @@ public class SqlStorageService : IStorageService
 {
     private readonly DtroContext _dtroContext;
     private readonly ISpatialProjectionService _projectionService;
+    private readonly IDtroMappingService _dtroMappingService;
 
     /// <summary>
-    /// Informs whether this <see cref="IStorageService"/>
+    /// Gets a value indicating whether this <see cref="IStorageService"/>
     /// implementation is capable of searching dtros.
     /// <br/><br/>
     /// Always <see langword="true"/> in case of <see cref="SqlStorageService"/>.
@@ -44,10 +44,12 @@ public class SqlStorageService : IStorageService
     /// representing the current database session.
     /// </param>
     /// <param name="projectionService">An <see cref="ISpatialProjectionService"/> instance.</param>
-    public SqlStorageService(DtroContext dtroContext, ISpatialProjectionService projectionService)
+    /// <param name="dtroMappingService">An <see cref="IDtroMappingService"/> instance.</param>
+    public SqlStorageService(DtroContext dtroContext, ISpatialProjectionService projectionService, IDtroMappingService dtroMappingService)
     {
         _dtroContext = dtroContext;
         _projectionService = projectionService;
+        _dtroMappingService = dtroMappingService;
     }
 
     /// <inheritdoc/>
@@ -70,7 +72,7 @@ public class SqlStorageService : IStorageService
 
     /// <inheritdoc/>
     public Task<bool> DtroExists(Guid id)
-        => _dtroContext.Dtros.AnyAsync(it => it.Id == id);
+        => _dtroContext.Dtros.AnyAsync(it => it.Id == id && !it.Deleted);
 
     /// <inheritdoc/>
     public async Task<Models.DTRO> GetDtroById(Guid id)
@@ -79,70 +81,29 @@ public class SqlStorageService : IStorageService
     }
 
     /// <inheritdoc/>
-    public async Task SaveDtroAsJson(Guid id, JObject jsonContent)
+    public async Task SaveDtroAsJson(Guid id, Models.DTRO data)
     {
-        var dtro = JsonConvert.DeserializeObject<Models.DTRO>(jsonContent.ToString());
+        data.Id = id;
 
-        dtro.Id = id;
+        _dtroMappingService.InferIndexFields(data);
 
-        dtro.InferIndexFields(_projectionService);
-
-        await _dtroContext.Dtros.AddAsync(dtro);
+        await _dtroContext.Dtros.AddAsync(data);
 
         await _dtroContext.SaveChangesAsync();
     }
 
     /// <inheritdoc/>
-    public async Task SaveDtroAsJson(Guid id, object data)
+    public async Task<bool> TryUpdateDtroAsJson(Guid id, Models.DTRO data)
     {
-        if (data is not Models.DTRO dtro)
-        {
-            throw new InvalidOperationException($"Parameter '{nameof(data)}' must be of type {nameof(Models.DTRO)}.");
-        }
-
-        dtro.Id = id;
-
-        dtro.InferIndexFields(_projectionService);
-
-        await _dtroContext.Dtros.AddAsync(dtro);
-
-        await _dtroContext.SaveChangesAsync();
-    }
-
-    /// <inheritdoc/>
-    public async Task<bool> TryUpdateDtroAsJson(Guid id, object data)
-    {
-        if (data is not Models.DTRO dtro)
-        {
-            throw new InvalidOperationException($"Parameter '{nameof(data)}' must be of type {nameof(Models.DTRO)}.");
-        }
-
         try
         {
-            await UpdateDtro(id, dtro);
+            await UpdateDtroAsJson(id, data);
             return true;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return false;
         }
-    }
-
-    /// <inheritdoc/>
-    public Task UpdateDtroAsJson(Guid id, JObject jsonContent)
-        => UpdateDtro(id, JsonConvert.DeserializeObject<Models.DTRO>(jsonContent.ToString()));
-
-    /// <inheritdoc/>
-    public async Task UpdateDtroAsJson(Guid id, object data)
-    {
-        if (data is not Models.DTRO dtro)
-        {
-            throw new InvalidOperationException($"Parameter '{nameof(data)}' must be of type {nameof(Models.DTRO)}.");
-        }
-
-        dtro.InferIndexFields(_projectionService);
-
-        await UpdateDtro(id, dtro);
     }
 
     /// <inheritdoc/>
@@ -166,9 +127,9 @@ public class SqlStorageService : IStorageService
                 expressionsToConjunct.Add(it => !it.Deleted);
             }
 
-            if (query.Ha is int ha)
+            if (query.Ta is int ta)
             {
-                expressionsToConjunct.Add(it => it.HighwayAuthorityId == ha);
+                expressionsToConjunct.Add(it => it.TrafficAuthorityId == ta);
             }
 
             if (query.PublicationTime is DateTime publicationTime)
@@ -268,7 +229,6 @@ public class SqlStorageService : IStorageService
         return new PaginatedResult<Models.DTRO>(await paginatedQuery.ToListAsync(), await dataQuery.CountAsync());
     }
 
-
     /// <inheritdoc />
     public async Task<List<Models.DTRO>> FindDtros(DtroEventSearch search)
     {
@@ -282,14 +242,10 @@ public class SqlStorageService : IStorageService
 
             expressionsToConjunct.Add(it => it.DeletionTime >= deletionTime);
         }
-        else
-        {
-            expressionsToConjunct.Add(it => !it.Deleted);
-        }
 
-        if (search.Ha is int ha)
+        if (search.Ta is int ta)
         {
-            expressionsToConjunct.Add(it => it.HighwayAuthorityId == ha);
+            expressionsToConjunct.Add(it => it.TrafficAuthorityId == ta);
         }
 
         if (search.Since is DateTime publicationTime)
@@ -370,6 +326,11 @@ public class SqlStorageService : IStorageService
             expressionsToConjunct.Add(expr);
         }
 
+        if (!expressionsToConjunct.Any())
+        {
+            return await result.OrderBy(it => it.Id).ToListAsync();
+        }
+
         var sqlQuery = result
             .Where(AllOf(expressionsToConjunct))
             .OrderBy(it => it.Id);
@@ -377,7 +338,8 @@ public class SqlStorageService : IStorageService
         return await sqlQuery.ToListAsync();
     }
 
-    private async Task UpdateDtro(Guid id, Models.DTRO dtro)
+    /// <inheritdoc/>
+    public async Task UpdateDtroAsJson(Guid id, Models.DTRO data)
     {
         if (await _dtroContext.Dtros.FindAsync(id) is not Models.DTRO existing || existing.Deleted)
         {
@@ -391,10 +353,10 @@ public class SqlStorageService : IStorageService
 
         foreach (PropertyInfo prop in props.Except(ignoredProps))
         {
-            prop.SetValue(existing, prop.GetValue(dtro));
+            prop.SetValue(existing, prop.GetValue(data));
         }
 
-        existing.InferIndexFields(_projectionService);
+        _dtroMappingService.InferIndexFields(data);
 
         await _dtroContext.SaveChangesAsync();
     }

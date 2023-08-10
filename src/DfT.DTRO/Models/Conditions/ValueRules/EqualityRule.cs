@@ -6,13 +6,15 @@ namespace DfT.DTRO.Models.Conditions.ValueRules;
 /// Represents a rule that checks equality against a value.
 /// </summary>
 /// <typeparam name="T">The type of parameter used in this rule.</typeparam>
-/// <param name="Value">The value to check equality against.</param>
-public readonly record struct EqualityRule<T>(T Value) : IValueRule<T> where T : IComparable<T>
+/// <param name="value">The value to check equality against.</param>
+public readonly record struct EqualityRule<T>(T value)
+    : IValueRule<T>
+    where T : IComparable<T>
 {
     /// <inheritdoc/>
     public bool Apply(T value)
     {
-        return value.CompareTo(Value) == 0;
+        return value.CompareTo(this.value) == 0;
     }
 
     /// <inheritdoc/>
@@ -25,22 +27,22 @@ public readonly record struct EqualityRule<T>(T Value) : IValueRule<T> where T :
 
         if (other is LessThanRule<T> lt)
         {
-            return !lt.Apply(Value);
+            return !lt.Apply(value);
         }
 
         if (other is MoreThanRule<T> mt)
         {
-            return !mt.Apply(Value);
+            return !mt.Apply(value);
         }
 
         if (other is EqualityRule<T> otherEquality)
         {
-            return !Apply(otherEquality.Value);
+            return !Apply(otherEquality.value);
         }
 
         if (other is InequalityRule<T> inequality)
         {
-            return Apply(inequality.Value);
+            return Apply(inequality.value);
         }
 
         if (other is AndRule<T> || other is OrRule<T>)
@@ -54,15 +56,15 @@ public readonly record struct EqualityRule<T>(T Value) : IValueRule<T> where T :
     /// <inheritdoc/>
     public IValueRule<T> Inverted()
     {
-        return new InequalityRule<T>(Value);
+        return new InequalityRule<T>(value);
     }
 
     /// <summary>
     /// Returns a string representation of this rule.
     /// </summary>
-    /// <returns>A string representation of this rule</returns>
+    /// <returns>A string representation of this rule.</returns>
     public override string ToString()
     {
-        return $"=={Value}";
+        return $"=={value}";
     }
 }

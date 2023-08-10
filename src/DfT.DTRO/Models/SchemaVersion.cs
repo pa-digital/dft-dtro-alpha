@@ -12,14 +12,16 @@ public class SchemaVersion : IComparable<SchemaVersion>
     private const string ValidationPattern = @"^\d+\.\d+\.\d+$";
 
     private int Major { get; }
+
     private int Minor { get; }
+
     private int Patch { get; }
 
     /// <summary>
     /// Creates a SchemaVersion object from string.
     /// </summary>
-    /// <param name="version">Schema version string</param>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <param name="version">Schema version string.</param>
+    /// <exception cref="InvalidOperationException">Thrown when schema version is invalid.</exception>
     public SchemaVersion(string version)
     {
         if (version is null)
@@ -42,9 +44,9 @@ public class SchemaVersion : IComparable<SchemaVersion>
     /// <summary>
     /// Creates a SchemaVersion object from three version components.
     /// </summary>
-    /// <param name="major">Semver major</param>
-    /// <param name="minor">Semver minor</param>
-    /// <param name="patch">Semver patch</param>
+    /// <param name="major">Semver major.</param>
+    /// <param name="minor">Semver minor.</param>
+    /// <param name="patch">Semver patch.</param>
     public SchemaVersion(int major, int minor, int patch)
     {
         if (major < 0 || minor < 0 || patch < 0)
@@ -57,7 +59,6 @@ public class SchemaVersion : IComparable<SchemaVersion>
         Patch = patch;
     }
 
-
     /// <inheritdoc />
     public int CompareTo(SchemaVersion other)
     {
@@ -65,7 +66,6 @@ public class SchemaVersion : IComparable<SchemaVersion>
         {
             return 0;
         }
-
 
         if (Major < other.Major)
         {
@@ -89,8 +89,8 @@ public class SchemaVersion : IComparable<SchemaVersion>
     /// <summary>
     /// Converts string to schema version instance.
     /// </summary>
-    /// <param name="version">Schema version <see cref="string" /></param>
-    /// <returns>A <see cref="SchemaVersion" /> instance</returns>
+    /// <param name="version">Schema version <see cref="string" />.</param>
+    /// <returns>A <see cref="SchemaVersion" /> instance.</returns>
     public static implicit operator SchemaVersion(string version)
     {
         return new SchemaVersion(version);
@@ -162,11 +162,6 @@ public class SchemaVersion : IComparable<SchemaVersion>
         return Comparer<SchemaVersion>.Default.Compare(left, right) != 0;
     }
 
-    private bool Equals(SchemaVersion other)
-    {
-        return Major == other.Major && Minor == other.Minor && Patch == other.Patch;
-    }
-
     /// <inheritdoc />
     public override bool Equals(object obj)
     {
@@ -189,9 +184,14 @@ public class SchemaVersion : IComparable<SchemaVersion>
         return HashCode.Combine(Major, Minor, Patch);
     }
 
-    ///<inheritdoc/>
+    /// <inheritdoc/>
     public override string ToString()
     {
         return $"{Major}.{Minor}.{Patch}";
+    }
+
+    private bool Equals(SchemaVersion other)
+    {
+        return Major == other.Major && Minor == other.Minor && Patch == other.Patch;
     }
 }

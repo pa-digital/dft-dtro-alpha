@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -17,9 +16,6 @@ namespace DfT.DTRO.Services.Validation;
 /// <inheritdoc />
 public class SemanticValidationService : ISemanticValidationService
 {
-    private static readonly ImmutableArray<double> gbBBox =
-        ImmutableArray.Create(-7.57216793459, 49.959999905, 1.68153079591, 58.6350001085);
-
     private readonly ISystemClock _clock;
     private readonly IStorageService _storageService;
     private readonly IConditionValidationService _conditionValidationService;
@@ -46,22 +42,6 @@ public class SemanticValidationService : ISemanticValidationService
         return Validate(request.DtroDataToJsonString(), request.SchemaVersion);
     }
 
-    private async Task<List<SemanticValidationError>> Validate(
-        string dtroDataString,
-        SchemaVersion dtroSchemaVersion
-    )
-    {
-        var validationErrors = new List<SemanticValidationError>();
-        var parsedBody = JObject.Parse(dtroDataString);
-
-        ValidateLastUpdatedDate(parsedBody, validationErrors);
-        ValidateCoordinatesAgainstBoundingBoxes(parsedBody, validationErrors);
-        await ValidateReferencedTroId(parsedBody, dtroSchemaVersion, validationErrors);
-        ValidateConditions(parsedBody, validationErrors);
-
-        return validationErrors;
-    }
-
     private static IEnumerable<IValueRule> GetValueRules(Condition condition)
     {
         if (condition is ConditionSet conditionSet)
@@ -71,85 +51,29 @@ public class SemanticValidationService : ISemanticValidationService
 
         if (condition is DriverCondition driverCondition)
         {
-            return new List<IValueRule> {
-                driverCondition.AgeOfDriver,
-                driverCondition.TimeDriversLicenseHeld
-            }.Where(it => it is not null);
+            return new List<IValueRule> { driverCondition.AgeOfDriver, driverCondition.TimeDriversLicenseHeld }.Where(
+                it => it is not null);
         }
 
         if (condition is VehicleCondition vehicleCondition)
         {
-            return new List<IValueRule> {
+            return new List<IValueRule>
+            {
                 vehicleCondition.VehicleCharacteristics?.GrossWeightCharacteristic,
                 vehicleCondition.VehicleCharacteristics?.WidthCharacteristic,
                 vehicleCondition.VehicleCharacteristics?.HeightCharacteristic,
                 vehicleCondition.VehicleCharacteristics?.LengthCharacteristic,
                 vehicleCondition.VehicleCharacteristics?.HeaviestAxleWeightCharacteristic,
                 vehicleCondition.VehicleCharacteristics?.NumberOfAxlesCharacteristic
-
             }.Where(it => it is not null);
         }
 
         if (condition is OccupantCondition occupantCondition)
         {
-            return new List<IValueRule>
-            {
-                occupantCondition.NumbersOfOccupants
-            };
+            return new List<IValueRule> { occupantCondition.NumbersOfOccupants };
         }
 
         return new List<IValueRule>();
-    }
-
-    private void ValidateConditions(JObject data, List<SemanticValidationError> errors)
-    {
-        var conditionArrays =
-            data.DescendantsAndSelf()
-            .OfType<JProperty>()
-            .Where(it => it.Name == "conditions")
-            .Select(it => it.Value)
-            .Cast<JArray>();
-
-
-        foreach (var conditionArray in conditionArrays)
-        {
-            var mappedConditions =
-                JsonSerializer.Deserialize<List<Condition>>(
-                    conditionArray.ToString(),
-                    new JsonSerializerOptions {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    }
-                );
-
-            var rangeConditionErrors = new List<SemanticValidationError>();
-
-            foreach (var condition in mappedConditions)
-            {
-                ValidateRangeConditions(condition, rangeConditionErrors, conditionArray.Path);
-            }
-
-            errors.AddRange(rangeConditionErrors);
-
-            if (rangeConditionErrors.Any())
-            {
-                return;
-            }
-
-            if (mappedConditions.Count < 2) { continue; }
-
-            var conditionSet = ConditionSet.And(mappedConditions);
-
-            var conditionErrors = _conditionValidationService.Validate(conditionSet);
-
-            foreach (var error in conditionErrors)
-            {
-                error.Path = conditionArray.Path;
-            }
-
-            errors.AddRange(
-                conditionErrors
-            );
-        }
     }
 
     private static void ValidateRangeConditions(Condition condition, List<SemanticValidationError> errors, string path)
@@ -172,8 +96,7 @@ public class SemanticValidationService : ISemanticValidationService
             {
                 errors.Add(new SemanticValidationError()
                 {
-                    Message = "The value condition must represent a single value or a valid range.",
-                    Path = path
+                    Message = "The value condition must represent a single value or a valid range.", Path = path
                 });
 
                 continue;
@@ -181,31 +104,7 @@ public class SemanticValidationService : ISemanticValidationService
 
             if (andRule.First.Contradicts(andRule.Second))
             {
-                errors.Add(new SemanticValidationError()
-                {
-                    Message = "The condition contradicts itself",
-                    Path = path
-                });
-            }
-        }
-    }
-
-    private void ValidateLastUpdatedDate(JObject data, List<SemanticValidationError> errors)
-    {
-        var lastUpdatedDateNodes = data.DescendantsAndSelf().OfType<JProperty>().Where(p => p.Name == "lastUpdateDate").Select(p => p);
-
-        foreach (var lastUpdatedDateNode in lastUpdatedDateNodes)
-        {
-            var dateTime = DateTime.Parse(lastUpdatedDateNode.Value.ToString()).ToUniversalTime();
-            if (dateTime > _clock.UtcNow)
-            {
-                errors.Add(
-                    new SemanticValidationError
-                    {
-                        Message = "lastUpdateDate cannot be in the future",
-                        Path = lastUpdatedDateNode.Path,
-                    }
-                );
+                errors.Add(new SemanticValidationError { Message = "The condition contradicts itself", Path = path });
             }
         }
     }
@@ -228,11 +127,7 @@ public class SemanticValidationService : ISemanticValidationService
 
             if (!obj.TryGetValue("crs", out JToken token))
             {
-
-                errors.Add(new SemanticValidationError
-                {
-                    Message = $"'crs' was missing, it must be a string."
-                });
+                errors.Add(new SemanticValidationError { Message = "'crs' was missing, it must be a string." });
 
                 continue;
             }
@@ -242,13 +137,13 @@ public class SemanticValidationService : ISemanticValidationService
                 if (value.ToLower() == "osgb36epsg27700")
                 {
                     var coordinates = obj.DescendantsAndSelf().OfType<JProperty>()
-                            .Where(p => p.Name == "coordinates").FirstOrDefault().Value as JObject;
+                        .Where(p => p.Name == "coordinates").FirstOrDefault().Value as JObject;
                     ValidateGeometryAgainstBoundingBox(coordinates, errors, BoundingBox.ForOsgb36Epsg27700);
                 }
                 else if (value.ToLower() == "wgs84epsg4326")
                 {
                     var coordinates = obj.DescendantsAndSelf().OfType<JProperty>()
-                            .Where(p => p.Name == "coordinates").FirstOrDefault().Value as JObject;
+                        .Where(p => p.Name == "coordinates").FirstOrDefault().Value as JObject;
                     ValidateGeometryAgainstBoundingBox(coordinates, errors, BoundingBox.ForWgs84Epsg4326);
                 }
                 else
@@ -263,9 +158,13 @@ public class SemanticValidationService : ISemanticValidationService
         }
     }
 
-    private static void ValidateGeometryAgainstBoundingBox(JObject outerCoordinates, List<SemanticValidationError> errors, BoundingBox bbox)
+    private static void ValidateGeometryAgainstBoundingBox(
+        JObject outerCoordinates,
+        List<SemanticValidationError> errors,
+        BoundingBox bbox)
     {
-        var coordinateSetFields = outerCoordinates.DescendantsAndSelf().OfType<JProperty>().Where(p => p.Name == "coordinates").First();
+        JProperty coordinateSetFields = outerCoordinates.DescendantsAndSelf().OfType<JProperty>()
+            .Where(p => p.Name == "coordinates").First();
 
         if (!outerCoordinates.TryGetValue("type", out JToken typeToken) || typeToken.Type != JTokenType.String)
         {
@@ -274,8 +173,7 @@ public class SemanticValidationService : ISemanticValidationService
                 {
                     Message = $"'coordinates' must define a 'type' field of type {JTokenType.String}",
                     Path = outerCoordinates.Path
-                }
-            );
+                });
 
             return;
         }
@@ -289,8 +187,7 @@ public class SemanticValidationService : ISemanticValidationService
                 {
                     Message = $"'coordinates' must define a 'coordinates' field of type {JTokenType.Array}",
                     Path = coordinateSetFields.Path
-                }
-            );
+                });
 
             return;
         }
@@ -317,8 +214,7 @@ public class SemanticValidationService : ISemanticValidationService
                     {
                         Message = $"Array contains {array.Count} elements - it must contain exactly 2.",
                         Path = array.Path,
-                    }
-                );
+                    });
 
                 invalid = true;
             }
@@ -331,10 +227,9 @@ public class SemanticValidationService : ISemanticValidationService
                         new SemanticValidationError
                         {
                             Message = $"Coordinate arrays contains a token of type {token.Type}. " +
-                                        $"Coordinate arrays must only contain numbers.",
+                                      $"Coordinate arrays must only contain numbers.",
                             Path = token.Path,
-                        }
-                    );
+                        });
 
                     invalid = true;
                 }
@@ -353,28 +248,21 @@ public class SemanticValidationService : ISemanticValidationService
                 if (bboxErrors.LongitudeError is string longitudeError)
                 {
                     errors.Add(
-                    new SemanticValidationError
-                        {
-                            Message = longitudeError,
-                            Path = array.First.Path,
-                        }
-                    );
+                        new SemanticValidationError { Message = longitudeError, Path = array.First.Path });
                 }
+
                 if (bboxErrors.LatitudeError is string latitudeError)
                 {
                     errors.Add(
-                        new SemanticValidationError
-                        {
-                            Message = latitudeError,
-                            Path = array.Last.Path,
-                        }
-                    );
+                        new SemanticValidationError { Message = latitudeError, Path = array.Last.Path });
                 }
             }
         }
     }
 
-    private static IEnumerable<JArray> UnwrapArray(IEnumerable<JArray> coordinateSetProp, List<SemanticValidationError> errors)
+    private static IEnumerable<JArray> UnwrapArray(
+        IEnumerable<JArray> coordinateSetProp,
+        List<SemanticValidationError> errors)
     {
         var nonArrayCoordinateSets = coordinateSetProp
             .SelectMany(it => it)
@@ -387,8 +275,7 @@ public class SemanticValidationService : ISemanticValidationService
                 {
                     Message = $"'coordinates' was {nonArray.Type} - it must be a {JTokenType.Array}",
                     Path = nonArray.Path,
-                }
-            );
+                });
         }
 
         return coordinateSetProp
@@ -396,102 +283,86 @@ public class SemanticValidationService : ISemanticValidationService
             .OfType<JArray>();
     }
 
-    private static void ValidateBoundingBox(JObject data, List<SemanticValidationError> errors)
+    private void ValidateConditions(JObject data, List<SemanticValidationError> errors)
     {
-        var bBoxFields = data.DescendantsAndSelf().OfType<JProperty>().Where(p => p.Name == "bbox");
+        var conditionArrays =
+            data.DescendantsAndSelf()
+                .OfType<JProperty>()
+                .Where(it => it.Name == "conditions")
+                .Select(it => it.Value)
+                .Cast<JArray>();
 
-        var nonArrayBBoxes = bBoxFields.Where(it => it.Value is not JArray);
-
-        foreach (var nonArrayBBox in nonArrayBBoxes)
+        foreach (var conditionArray in conditionArrays)
         {
-            errors.Add(
-                new SemanticValidationError
-                {
-                    Message = $"'bbox' was {nonArrayBBox.Value.Type} - it must be a {JTokenType.Array}",
-                    Path = nonArrayBBox.Path,
-                }
-            );
-        }
+            var mappedConditions =
+                JsonSerializer.Deserialize<List<Condition>>(
+                    conditionArray.ToString(),
+                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        var arrayBBoxes = bBoxFields.Except(nonArrayBBoxes).Select(it => it.Value as JArray);
+            var rangeConditionErrors = new List<SemanticValidationError>();
 
-        var invalidBBoxes = arrayBBoxes.Where(it => it.Count != 4);
-
-        foreach (var bBox in invalidBBoxes)
-        {
-            errors.Add(
-                new SemanticValidationError
-                {
-                    Message = $"'bbox' had {bBox.Count} values - it must be an array of 4 values",
-                    Path = bBox.Path,
-                }
-            );
-        }
-
-        var validBBoxes = arrayBBoxes.Except(invalidBBoxes);
-
-        foreach (var validBBox in validBBoxes)
-        {
-            var bboxAsDoubles = new double?[4]; 
-
-            for (int i = 0; i < 4; i++)
+            foreach (var condition in mappedConditions)
             {
-                var prop = validBBox[i];
-                var limit = gbBBox[i];
-                Func<double, double, bool> predicate = i > 1 ? ((val, lim) => val > lim) : ((val, lim) => val < lim);
-                var maxOrMin = i > 1 ? "maximum" : "minimum";
+                ValidateRangeConditions(condition, rangeConditionErrors, conditionArray.Path);
+            }
 
-                if (prop.Type != JTokenType.Float && prop.Type != JTokenType.Integer)
-                {
-                    errors.Add(
-                        new SemanticValidationError
-                        {
-                            Message = $"'bbox' value was {prop.Type}, it must be a number",
-                            Path = prop.Path,
-                        }
-                    );
-                }
-                else
-                {
-                    var value = prop.ToObject<double>();
+            errors.AddRange(rangeConditionErrors);
 
-                    if (predicate(value, limit))
+            if (rangeConditionErrors.Any())
+            {
+                return;
+            }
+
+            if (mappedConditions.Count < 2)
+            {
+                continue;
+            }
+
+            var conditionSet = ConditionSet.And(mappedConditions);
+
+            var conditionErrors = _conditionValidationService.Validate(conditionSet);
+
+            foreach (var error in conditionErrors)
+            {
+                error.Path = conditionArray.Path;
+            }
+
+            errors.AddRange(
+                conditionErrors);
+        }
+    }
+
+    private async Task<List<SemanticValidationError>> Validate(
+        string dtroDataString,
+        SchemaVersion dtroSchemaVersion)
+    {
+        var validationErrors = new List<SemanticValidationError>();
+        var parsedBody = JObject.Parse(dtroDataString);
+
+        ValidateLastUpdatedDate(parsedBody, validationErrors);
+        ValidateCoordinatesAgainstBoundingBoxes(parsedBody, validationErrors);
+        await ValidateReferencedTroId(parsedBody, dtroSchemaVersion, validationErrors);
+        ValidateConditions(parsedBody, validationErrors);
+
+        return validationErrors;
+    }
+
+    private void ValidateLastUpdatedDate(JObject data, List<SemanticValidationError> errors)
+    {
+        IEnumerable<JProperty> lastUpdatedDateNodes = data.DescendantsAndSelf().OfType<JProperty>()
+            .Where(p => p.Name == "lastUpdateDate")
+            .Select(p => p);
+
+        foreach (var lastUpdatedDateNode in lastUpdatedDateNodes)
+        {
+            var dateTime = DateTime.Parse(lastUpdatedDateNode.Value.ToString()).ToUniversalTime();
+            if (dateTime > _clock.UtcNow)
+            {
+                errors.Add(
+                    new SemanticValidationError
                     {
-                        errors.Add(
-                            new SemanticValidationError
-                            {
-                                Message = $"'bbox' value was {value}, the {maxOrMin} value is {limit}",
-                                Path = prop.Path,
-                            }
-                        );
-                    }
-
-                    bboxAsDoubles[i] = value;
-                }
-            }
-
-            if (bboxAsDoubles[0] is double minLon && bboxAsDoubles[2] is double maxLon && minLon > maxLon)
-            {
-                errors.Add(
-                            new SemanticValidationError
-                            {
-                                Message =   $"Minimum longitude value was {minLon} and maximum was {maxLon}, " +
-                                            $"maximum longitude must be greater than minimum longitude.",
-                                Path = validBBox[0].Path,
-                            }
-                        );
-            }
-
-            if (bboxAsDoubles[1] is double minLat && bboxAsDoubles[3] is double maxLat && minLat > maxLat)
-            {
-                errors.Add(
-                            new SemanticValidationError
-                            {
-                                Message =   $"Minimum latitude value was {minLat} and maximum was {maxLat}, " +
-                                            $"maximum latitude must be greater than minimum.",
-                                Path = validBBox[1].Path,
-                            }
-                        );
+                        Message = "lastUpdateDate cannot be in the future", Path = lastUpdatedDateNode.Path
+                    });
             }
         }
     }
@@ -499,8 +370,7 @@ public class SemanticValidationService : ISemanticValidationService
     private async Task ValidateReferencedTroId(
         JObject data,
         SchemaVersion dtroSchemaVersion,
-        List<SemanticValidationError> errors
-    )
+        List<SemanticValidationError> errors)
     {
         if (dtroSchemaVersion < "3.1.2")
         {
@@ -519,8 +389,7 @@ public class SemanticValidationService : ISemanticValidationService
                     new SemanticValidationError
                     {
                         Message = $"Referenced D-TRO with id {dtroId} does not exist.", Path = "source.crossRefTro"
-                    }
-                );
+                    });
             }
         }
     }

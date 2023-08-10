@@ -11,26 +11,30 @@ public enum ComparisonOperator
     /// <summary>
     /// Equality operator
     /// </summary>
-    [EnumMember(Value = "=")] Equal,
-    
+    [EnumMember(Value = "=")]
+    Equal,
+
     /// <summary>
     /// Greater than operator
     /// </summary>
-    [EnumMember(Value = ">")] GreaterThan,
-    
+    [EnumMember(Value = ">")]
+    GreaterThan,
+
     /// <summary>
     /// Greater than or equal operator
     /// </summary>
-    [EnumMember(Value = ">=")] GreaterThanOrEqual,
-    
-    
+    [EnumMember(Value = ">=")]
+    GreaterThanOrEqual,
+
     /// <summary>
     /// Less than operator
     /// </summary>
-    [EnumMember(Value = "<")] LessThan,
-    
+    [EnumMember(Value = "<")]
+    LessThan,
+
     /// <summary>
     /// Less than or equal operator
     /// </summary>
-    [EnumMember(Value = "<=")] LessThanOrEqual
+    [EnumMember(Value = "<=")]
+    LessThanOrEqual
 }

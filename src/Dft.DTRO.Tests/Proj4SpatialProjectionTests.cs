@@ -25,8 +25,8 @@ public class Proj4SpatialProjectionTests
 
         var result = sut.Wgs84ToOsgb36(longitude, latitude);
 
-        WithinErrorMarginPercent(result.Longitude, expectedLongitude, ErrorMarginPercent);
-        WithinErrorMarginPercent(result.Latitude, expectedLatitude, ErrorMarginPercent);
+        WithinErrorMarginPercent(result.longitude, expectedLongitude, ErrorMarginPercent);
+        WithinErrorMarginPercent(result.latitude, expectedLatitude, ErrorMarginPercent);
     }
 
     [Theory]
@@ -39,10 +39,10 @@ public class Proj4SpatialProjectionTests
 
         var result = sut.Wgs84ToOsgb36(westLongitude, southLatitude, eastLongitude, northLatitude);
 
-        WithinErrorMarginPercent(result.WestLongitude, expectedWestLongitude, ErrorMarginPercent);
-        WithinErrorMarginPercent(result.SouthLatitude, expectedSouthLatitude, ErrorMarginPercent);
-        WithinErrorMarginPercent(result.EastLongitude, expectedEastLongitude, ErrorMarginPercent);
-        WithinErrorMarginPercent(result.NorthLatitude, expectedNorthLatitude, ErrorMarginPercent);
+        WithinErrorMarginPercent(result.westLongitude, expectedWestLongitude, ErrorMarginPercent);
+        WithinErrorMarginPercent(result.southLatitude, expectedSouthLatitude, ErrorMarginPercent);
+        WithinErrorMarginPercent(result.eastLongitude, expectedEastLongitude, ErrorMarginPercent);
+        WithinErrorMarginPercent(result.northLatitude, expectedNorthLatitude, ErrorMarginPercent);
     }
 
     [Theory]
@@ -55,10 +55,10 @@ public class Proj4SpatialProjectionTests
 
         var result = sut.Osgb36ToWgs84(westLongitude, southLatitude, eastLongitude, northLatitude);
 
-        WithinErrorMarginPercent(result.WestLongitude, expectedWestLongitude, ErrorMarginPercent);
-        WithinErrorMarginPercent(result.SouthLatitude, expectedSouthLatitude, ErrorMarginPercent);
-        WithinErrorMarginPercent(result.EastLongitude, expectedEastLongitude, ErrorMarginPercent);
-        WithinErrorMarginPercent(result.NorthLatitude, expectedNorthLatitude, ErrorMarginPercent);
+        WithinErrorMarginPercent(result.westLongitude, expectedWestLongitude, ErrorMarginPercent);
+        WithinErrorMarginPercent(result.southLatitude, expectedSouthLatitude, ErrorMarginPercent);
+        WithinErrorMarginPercent(result.eastLongitude, expectedEastLongitude, ErrorMarginPercent);
+        WithinErrorMarginPercent(result.northLatitude, expectedNorthLatitude, ErrorMarginPercent);
     }
 
     private void WithinErrorMarginPercent(double actual, double expected, double percent)

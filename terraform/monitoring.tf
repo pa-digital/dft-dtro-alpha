@@ -76,7 +76,7 @@ resource "google_logging_metric" "created_dtros_count" {
 
 # Monitoring Dashboard
 data "local_file" "dashboard_template" {
-  filename = "${path.module}/configuration/monitoring/dashboard.json"
+  filename = var.feature_enable_redis_cache ? "${path.module}/configuration/monitoring/dashboard-with-memorystore.json" : "${path.module}/configuration/monitoring/dashboard.json"
 }
 
 resource "random_id" "dashboard_update_trigger" {

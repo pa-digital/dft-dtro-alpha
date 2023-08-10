@@ -6,7 +6,7 @@ using DfT.DTRO.Extensions;
 namespace DfT.DTRO.Models;
 
 /// <summary>
-/// Response to DTRO search query. 
+/// Response to DTRO search query.
 /// </summary>
 [DataContract]
 public class DtroSearchResult
@@ -24,10 +24,10 @@ public class DtroSearchResult
     public DateTime PublicationTime { get; set; }
 
     /// <summary>
-    /// The identifier of the Highway Authority.
+    /// The identifier of the Traffic Authority.
     /// </summary>
-    [DataMember(Name = "ha")]
-    public long HighwayAuthorityId { get; set; }
+    [DataMember(Name = "ta")]
+    public long TrafficAuthorityId { get; set; }
 
     /// <summary>
     /// The types of all regulations in the DTRO.
@@ -70,7 +70,9 @@ public class DtroSearchResult
         return new DtroSearchResult
         {
             TroName = dtro.Data.GetValueOrDefault<string>("source.troName"),
-            HighwayAuthorityId = dtro.Data.GetValueOrDefault<int>("source.ha"),
+            TrafficAuthorityId = dtro.Data.GetExpando("source").HasField("ta")
+                ? dtro.Data.GetValueOrDefault<int>("source.ta")
+                : dtro.Data.GetValueOrDefault<int>("source.ha"),
             PublicationTime = dtro.Created.Value,
             RegulationType = dtro.RegulationTypes,
             VehicleType = dtro.VehicleTypes,

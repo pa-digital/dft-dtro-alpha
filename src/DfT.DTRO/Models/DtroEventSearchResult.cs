@@ -8,9 +8,9 @@ namespace DfT.DTRO.Models;
 public class DtroEventSearchResult
 {
     /// <summary>
-    /// List of change events in the DTRO service
+    /// List of change events in the DTRO service.
     /// </summary>
-    public List<DtroEvent> Events { get; set; } = new();
+    public List<DtroEvent> Events { get; set; } = new ();
 
     /// <summary>
     /// Current page number.
@@ -26,5 +26,4 @@ public class DtroEventSearchResult
     /// Total number of records.
     /// </summary>
     public int TotalCount { get; set; }
-
 }

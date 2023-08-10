@@ -7,7 +7,6 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using DfT.DTRO.Models.Conditions.Base;
 using Json.Logic;
-using Json.More;
 
 namespace DfT.DTRO.Models.Conditions;
 
@@ -26,10 +25,12 @@ public class ConditionSet : Condition, IEnumerable<Condition>
         /// A logical conjunction (and) operator.
         /// </summary>
         And,
+
         /// <summary>
         /// A logical disjunction (or) operator.
         /// </summary>
         Or,
+
         /// <summary>
         /// A logical exclusive disjunction (exclusive or) operator.
         /// </summary>
@@ -50,24 +51,10 @@ public class ConditionSet : Condition, IEnumerable<Condition>
     /// <param name="operatorType">The operator to apply to the conditions.</param>
     public ConditionSet(
         IEnumerable<Condition> conditions,
-        OperatorType operatorType
-        )
+        OperatorType operatorType)
     {
         _conditions = conditions.ToList();
         Operator = operatorType;
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<Condition> GetEnumerator()
-        => _conditions.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator()
-        => _conditions.GetEnumerator();
-
-    /// <inheritdoc/>
-    public override bool Contradicts(Condition other)
-    {
-        return false;
     }
 
     /// <summary>
@@ -131,6 +118,19 @@ public class ConditionSet : Condition, IEnumerable<Condition>
     }
 
     /// <inheritdoc/>
+    public IEnumerator<Condition> GetEnumerator()
+        => _conditions.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => _conditions.GetEnumerator();
+
+    /// <inheritdoc/>
+    public override bool Contradicts(Condition other)
+    {
+        return false;
+    }
+
+    /// <inheritdoc/>
     public override object Clone()
     {
         return new ConditionSet(_conditions.Select(it => it.Clone()).Cast<Condition>(), Operator)
@@ -164,27 +164,27 @@ public class ConditionSetJsonConverter : JsonConverter<ConditionSet>
             return null;
         }
 
-        if (json is not JsonObject jObject)
+        if (json is not JsonObject jsonObject)
         {
             throw new JsonException("Json must be an object.");
         }
 
-        var negate = jObject.TryGetPropertyValue("negate", out var negateNode)
-            && (negateNode?.IsTruthy() ?? false);
+        bool negate = jsonObject.TryGetPropertyValue("negate", out JsonNode negateNode)
+                      && (negateNode?.IsTruthy() ?? false);
 
-        var conditions = jObject.TryGetPropertyValue("conditions", out var conditionsNode)
-            ? JsonSerializer.Deserialize<List<Condition>>(conditionsNode) : new();
+        List<Condition> conditions = jsonObject.TryGetPropertyValue("conditions", out JsonNode conditionsNode)
+            ? JsonSerializer.Deserialize<List<Condition>>(conditionsNode) : new List<Condition>();
 
-        if (!jObject.TryGetPropertyValue("operator", out var opNode))
+        if (!jsonObject.TryGetPropertyValue("operator", out JsonNode operatorNode))
         {
             throw new JsonException("The 'operator' field is required.");
         }
 
-        string opString = null;
+        string operatorString = null;
 
         try
         {
-            opString = opNode.GetValue<string>();
+            operatorString = operatorNode.GetValue<string>();
         }
         catch (Exception ex)
         {
@@ -193,14 +193,13 @@ public class ConditionSetJsonConverter : JsonConverter<ConditionSet>
 
         return new ConditionSet(
             conditions,
-            opString.ToLower() switch
+            operatorString.ToLower() switch
             {
                 "and" => ConditionSet.OperatorType.And,
                 "or" => ConditionSet.OperatorType.Or,
                 "xor" => ConditionSet.OperatorType.XOr,
                 _ => throw new JsonException("Operator field is required to be one of 'and', 'or' or 'xor'.")
-            }
-            )
+            })
         {
             Negate = negate
         };

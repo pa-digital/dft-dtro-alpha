@@ -18,8 +18,8 @@ public class SemanticValidationError
     /// <summary>
     /// The type of error encountered (always semantic for this class).
     /// </summary>
-    public string ErrorType 
-    { 
+    public string ErrorType
+    {
         get { return "semantic"; }
     }
 }

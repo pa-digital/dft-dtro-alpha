@@ -30,5 +30,4 @@ public class RequestCorrelationProvider : IRequestCorrelationProvider
         _contextAccessor.HttpContext?.Request?.Headers?.TryGetValue(_options.HeaderName, out StringValues correlationIds) ?? false
             ? correlationIds.FirstOrDefault(value => !string.IsNullOrEmpty(value))?.ToString()
             : null;
-
 }

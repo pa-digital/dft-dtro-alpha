@@ -1,8 +1,9 @@
-﻿using Microsoft.FeatureManagement;
+﻿using System;
+using System.Linq;
+using Microsoft.FeatureManagement;
 using Microsoft.FeatureManagement.Mvc;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Linq;
 
 namespace DfT.DTRO.Filters;
 
@@ -41,14 +42,12 @@ public class FeatureGateFilter : IDocumentFilter
             if (featureGateAttribute.RequirementType == RequirementType.Any)
             {
                 isActive = featureGateAttribute.Features.Any(feature =>
-                    _featureManager.IsEnabledAsync(feature).GetAwaiter().GetResult()
-                );
+                    _featureManager.IsEnabledAsync(feature).GetAwaiter().GetResult());
             }
             else
             {
                 isActive = featureGateAttribute.Features.All(feature =>
-                    _featureManager.IsEnabledAsync(feature).GetAwaiter().GetResult()
-                );
+                    _featureManager.IsEnabledAsync(feature).GetAwaiter().GetResult());
             }
 
             if (isActive)
@@ -77,6 +76,6 @@ public class FeatureGateFilter : IDocumentFilter
         "TRACE" => OperationType.Trace,
         "OPTIONS" => OperationType.Options,
         "HEAD" => OperationType.Head,
-        _ => throw new System.InvalidOperationException($"'{httpMethod}' is not a known HTTP method"),
+        _ => throw new InvalidOperationException($"'{httpMethod}' is not a known HTTP method"),
     };
 }

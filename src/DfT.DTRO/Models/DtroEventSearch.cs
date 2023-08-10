@@ -14,7 +14,7 @@ public class DtroEventSearch
     /// <summary>
     /// One-based number of the requested page.
     /// </summary>
-    /// <example>1</example>
+    /// <example>1.</example>
     [Required]
     [Range(1, int.MaxValue)]
     [DataMember(Name = "page")]
@@ -23,7 +23,7 @@ public class DtroEventSearch
     /// <summary>
     /// Size of the requested page.
     /// </summary>
-    /// <example>10</example>
+    /// <example>10.</example>
     [Required]
     [Range(1, 50)]
     [DataMember(Name = "pageSize")]
@@ -44,13 +44,13 @@ public class DtroEventSearch
     /// <summary>
     /// The time DTRO was last updated.
     /// </summary>
-    public DateTime? ModificationTime { get; internal set; }
+    public DateTime? ModificationTime { get; set; }
 
     /// <summary>
-    /// The unique identifier of the highway authority that created the TRO.
+    /// The unique identifier of the traffic authority that created the TRO.
     /// </summary>
-    [DataMember(Name = "ha")]
-    public int? Ha { get; set; }
+    [DataMember(Name = "ta")]
+    public int? Ta { get; set; }
 
     /// <summary>
     /// Published title of the Traffic Regulation Order.

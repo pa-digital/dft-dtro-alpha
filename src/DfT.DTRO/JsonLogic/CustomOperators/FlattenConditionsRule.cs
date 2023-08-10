@@ -19,7 +19,7 @@ public class FlattenConditionsRule : Rule
     /// <summary>
     /// The <see cref="Rule" /> that should resolve to an array being the data source.
     /// </summary>
-    protected internal readonly Rule Source;
+    protected internal Rule Source { get; }
 
     /// <summary>
     /// Default constructor.
@@ -40,7 +40,7 @@ public class FlattenConditionsRule : Rule
             return false;
         }
 
-        JsonArray result = new();
+        JsonArray result = new ();
 
         List<JsonObject> flattenedConditions = Flatten(sourceArray.Select(it => it.AsObject()).ToList());
 
@@ -54,7 +54,7 @@ public class FlattenConditionsRule : Rule
 
     private List<JsonObject> Flatten(List<JsonObject> sourceConditions)
     {
-        List<JsonObject> result = new();
+        List<JsonObject> result = new ();
 
         foreach (JsonObject condition in sourceConditions)
         {
@@ -81,14 +81,16 @@ public class FlattenConditionsRule : Rule
 public class FlattenConditionsRuleConverter : JsonConverter<FlattenConditionsRule>
 {
     /// <inheritdoc />
-    public override FlattenConditionsRule Read(ref Utf8JsonReader reader, Type typeToConvert,
+    public override FlattenConditionsRule Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
         JsonSerializerOptions options)
     {
         JsonNode node = JsonSerializer.Deserialize<JsonNode>(ref reader, options);
 
         Rule[] parameters = node is JsonArray
             ? node.Deserialize<Rule[]>()
-            : new[] { node.Deserialize<Rule>()! };
+            : new[] { node.Deserialize<Rule>() ! };
 
         if (parameters is not { Length: 1 })
         {

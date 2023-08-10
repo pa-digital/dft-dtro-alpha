@@ -34,8 +34,7 @@ public class VehicleCondition : Condition
         return VehicleCharacteristics.Contradicts(
             otherVehicleCondition.VehicleCharacteristics,
             invertThis: Negate,
-            invertOther: otherVehicleCondition.Negate
-        );
+            invertOther: otherVehicleCondition.Negate);
     }
 
     /// <inheritdoc/>

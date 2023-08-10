@@ -14,7 +14,7 @@ public static class DatabaseMethods
     /// </summary>
     /// <param name="left">Left operand.</param>
     /// <param name="right">Right operand.</param>
-    /// <returns></returns>
+    /// <returns>True if boxes overlap.</returns>
     public static bool Overlaps(NpgsqlBox left, NpgsqlBox right)
     {
         throw new InvalidOperationException("This does not have an in-program implementation.");
