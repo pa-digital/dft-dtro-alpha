@@ -19,7 +19,7 @@ public class IndexedRule : Rule
     /// <summary>
     /// The <see cref="Rule"/> that should resolve to an array being the data source.
     /// </summary>
-    protected internal readonly Rule Source;
+    protected internal Rule Source { get; }
 
     /// <summary>
     /// Default constructor.
@@ -41,7 +41,7 @@ public class IndexedRule : Rule
         }
 
         var result = new JsonArray();
-        
+
         for (int i = 0; i < sourceArray.Count; i++)
         {
             var pairs = new Dictionary<string, JsonNode>()
@@ -68,7 +68,7 @@ public class IndexedRuleConverter : JsonConverter<IndexedRule>
 
         var parameters = node is JsonArray
             ? node.Deserialize<Rule[]>()
-            : new[] { node.Deserialize<Rule>()! };
+            : new[] { node.Deserialize<Rule>() ! };
 
         if (parameters is not { Length: 1 })
         {

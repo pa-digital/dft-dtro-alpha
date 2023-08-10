@@ -15,7 +15,7 @@ public class DTROResponseDto
     /// <summary>
     /// The schema identifier of the DTRO data payload being submitted.
     /// </summary>
-    /// <example>3.1.1</example>
+    /// <example>3.1.1.</example>
     [DataMember(Name = "schemaVersion")]
     [JsonConverter(typeof(SchemaVersionJsonConverter))]
     public SchemaVersion SchemaVersion { get; set; }
@@ -33,7 +33,7 @@ public class DTROResponseDto
     /// </summary>
     /// <param name="source">The <see cref="DTRO"/> to base the new <see cref="DTROResponseDto"/> on.</param>
     /// <returns>The created <see cref="DTROResponseDto"/>.</returns>
-    public static DTROResponseDto FromDTRO(DTRO source) => new()
+    public static DTROResponseDto FromDTRO(DTRO source) => new ()
     {
         SchemaVersion = source.SchemaVersion,
         Data = source.Data,

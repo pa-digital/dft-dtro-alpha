@@ -12,8 +12,10 @@ public class ExpandoObjectValueConverter : ValueConverter<ExpandoObject, string>
     /// <summary>
     /// The single constructor.
     /// </summary>
-    public ExpandoObjectValueConverter() : base(
+    public ExpandoObjectValueConverter()
+        : base(
         expando => JsonConvert.SerializeObject(expando),
-        dbValue => JsonConvert.DeserializeObject<ExpandoObject>(dbValue))
-    { }
+        databaseValue => JsonConvert.DeserializeObject<ExpandoObject>(databaseValue))
+    {
+    }
 }

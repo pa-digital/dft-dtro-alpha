@@ -10,7 +10,7 @@ public class CorrelationIdHeaderParameterFilter : IOperationFilter
     /// <inheritdoc />
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        operation.Parameters.Add(new OpenApiParameter 
+        operation.Parameters.Add(new OpenApiParameter
             {
                 Name = "X-Correlation-ID",
                 In = ParameterLocation.Header,

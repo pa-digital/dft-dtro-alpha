@@ -6,7 +6,7 @@ namespace DfT.DTRO.Models;
 /// A confirmation of storage paired with an accompanying ID.
 /// </summary>
 public class DTROResponse
-{ 
+{
     /// <summary>
     /// The unique identifier of the DTRO record stored centrally.
     /// </summary>

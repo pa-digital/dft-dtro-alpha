@@ -14,5 +14,5 @@ public class NoOpRequestCorrelationProvider : IRequestCorrelationProvider
     /// <summary>
     /// A static instance of this class.
     /// </summary>
-    public static readonly NoOpRequestCorrelationProvider Instance = new();
+    public static readonly NoOpRequestCorrelationProvider Instance = new ();
 }

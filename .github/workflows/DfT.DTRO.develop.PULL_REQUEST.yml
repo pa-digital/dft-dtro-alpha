@@ -13,11 +13,23 @@ jobs:
 
   build-test:
     runs-on: ubuntu-latest
+    env:
+      # DB credentials for integration tests
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: data
     steps:
     - uses: actions/checkout@v2
+    - name: Setup Postgres Database for tests
+      run: docker compose -f docker/dev/docker-compose.yml up -d
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
     - name: Build
       run: make build-test
+      env:
+        Postgres__Host: localhost
+        Postgres__User: ${{ env.POSTGRES_USER }}
+        Postgres__Password: ${{ env.POSTGRES_PASSWORD }}
+        Postgres__DbName: ${{ env.POSTGRES_DB }}

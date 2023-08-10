@@ -47,7 +47,8 @@ public static class SerilogConfigurationExtensions
                 if (context.Configuration["GOOGLE_APPLICATION_CREDENTIALS"] is string credentials
                     && context.Configuration["DevGclConfig"] is string devGclConfig)
                 {
-                    if (!File.Exists(devGclConfig)) {
+                    if (!File.Exists(devGclConfig))
+                    {
                         GenerateDefaultGclConfig(devGclConfig, context.Configuration);
                     }
 
@@ -60,7 +61,6 @@ public static class SerilogConfigurationExtensions
             }
 
             // In production log only to GCL with default credentials
-
             var prodGclConfig = new ConfigurationBuilder().AddJsonFile("appsettings.Serilog.json").Build();
 
             config.WriteTo.Logger(log => log.ReadFrom.Configuration(prodGclConfig));
@@ -70,7 +70,6 @@ public static class SerilogConfigurationExtensions
     /// <summary>
     /// A filter that matches logs to be excluded from Google Cloud Logging.
     /// </summary>
-    /// <param name="log"></param>
     /// <returns>
     /// <see langword="true"/> for logs that come from namespaces <see cref="Microsoft"/> or <see cref="System"/> and are below <see cref="LogEventLevel.Warning"/>
     /// and <see langword="false"/> for all other logs.
@@ -84,7 +83,7 @@ public static class SerilogConfigurationExtensions
 
     private static void GenerateDefaultGclConfig(string devGclConfig, IConfiguration config)
     {
-        string json = 
+        string json =
             @"{
     ""Serilog"": {
         ""Using"": [

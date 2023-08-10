@@ -33,10 +33,10 @@ public class SearchQuery
     public DateTime? DeletionTime { get; set; }
 
     /// <summary>
-    /// Highway Authority identifier.
+    /// Traffic Authority identifier.
     /// </summary>
-    [DataMember(Name = "ha")]
-    public int? Ha { get; set; }
+    [DataMember(Name = "ta")]
+    public int? Ta { get; set; }
 
     /// <summary>
     /// Published title of the Traffic Regulation Order.

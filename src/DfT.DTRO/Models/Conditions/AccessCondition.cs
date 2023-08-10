@@ -13,6 +13,7 @@ public class AccessCondition : Condition
     /// ‘accessOnly’, ‘loadingAndUnloading’, ‘throughTraffic’, etc.
     /// </summary>
     public List<string> AccessConditionType { get; init; }
+
     /// <summary>
     /// Indicates additional condition controlling access.
     /// </summary>

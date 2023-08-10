@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DfT.DTRO.DAL;
 using DfT.DTRO.Services.Storage;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -25,6 +23,7 @@ public static class StorageServiceDIExtensions
     /// they will be registered with <see cref="ServiceLifetime.Scoped"/>.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
+    /// <param name="writeToBucketOnly">Switches to mode in which data is saved only to bucket.</param>
     /// <param name="primaryImplementer">
     /// The primary type <see cref="MultiStorageService"/> will delegate to.
     /// </param>
@@ -36,7 +35,7 @@ public static class StorageServiceDIExtensions
     /// <paramref name="primaryImplementer"/> was null.
     /// </exception>
     /// <exception cref="InvalidOperationException">
-    /// At least one of them does not implement <see cref="IStorageService"/>
+    /// At least one of them does not implement <see cref="IStorageService"/>.
     /// </exception>
     public static IServiceCollection AddMultiStorageService(this IServiceCollection services, bool writeToBucketOnly, Type primaryImplementer, params Type[] secondaryImplementers)
     {
@@ -66,6 +65,7 @@ public static class StorageServiceDIExtensions
             {
                 list.Add(s.GetService(impl) as IStorageService);
             }
+
             return list;
         });
 
@@ -73,8 +73,7 @@ public static class StorageServiceDIExtensions
             s => new MultiStorageService(
                 s.GetService<IEnumerable<IStorageService>>(),
                 s.GetService<ILogger<MultiStorageService>>(),
-                writeToBucketOnly)
-            );
+                writeToBucketOnly));
     }
 
     /// <summary>
@@ -86,6 +85,7 @@ public static class StorageServiceDIExtensions
     /// </summary>
     /// <typeparam name="TImpl">The type <see cref="MultiStorageService"/> will delegate to.</typeparam>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
+    /// <param name="writeToBucketOnly">Switches to mode in which data is saved only to bucket.</param>
     /// <returns>A reference to this instance after the operation has completed.</returns>
     public static IServiceCollection AddMultiStorageService<TImpl>(this IServiceCollection services, bool writeToBucketOnly = false)
         where TImpl : class, IStorageService
@@ -102,8 +102,7 @@ public static class StorageServiceDIExtensions
             s => new MultiStorageService(
                 s.GetService<IEnumerable<IStorageService>>(),
                 s.GetService<ILogger<MultiStorageService>>(),
-                writeToBucketOnly)
-            );
+                writeToBucketOnly));
     }
 
     /// <summary>
@@ -116,6 +115,7 @@ public static class StorageServiceDIExtensions
     /// <typeparam name="TPrimary">The primary type <see cref="MultiStorageService"/> will delegate to.</typeparam>
     /// <typeparam name="TSecondary">The secondary type that the <see cref="MultiStorageService"/> will delegate to.</typeparam>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
+    /// <param name="writeToBucketOnly">Switches to mode in which data is saved only to bucket.</param>
     /// <returns>A reference to this instance after the operation has completed.</returns>
     public static IServiceCollection AddMultiStorageService<TPrimary, TSecondary>(this IServiceCollection services, bool writeToBucketOnly = false)
         where TPrimary : class, IStorageService
@@ -134,50 +134,10 @@ public static class StorageServiceDIExtensions
             s => new MultiStorageService(
                 s.GetService<IEnumerable<IStorageService>>(),
                 s.GetService<ILogger<MultiStorageService>>(),
-                writeToBucketOnly)
-            );
+                writeToBucketOnly));
     }
 
     // Add more of those if needed...
-
-    /// <summary>
-    /// Adds <see cref="DtroContext"/> with PostgreSQL
-    /// backend using the provided connection string.
-    /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
-    /// <param name="connectionString">The connection string to the database.</param>
-    /// <returns>A reference to this instance after the operation has completed.</returns>
-    public static IServiceCollection AddPostgresDtroContext(this IServiceCollection services, string connectionString)
-    {
-        return services.AddDbContext<DtroContext>(
-            opt => opt.UseNpgsql(connectionString)
-        );
-    }
-
-    /// <summary>
-    /// Adds <see cref="DtroContext"/> with PostgreSQL
-    /// backend using the provided connection string.
-    /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
-    /// <param name="host">The address of the database host.</param>
-    /// <param name="user">The username used to log in.</param>
-    /// <param name="password">The password used to log in.</param>
-    /// <param name="useSsl">Enables encryption of connection with SSL/TLS.</param>
-    /// <param name="database">The name of the database. By default the same as <paramref name="user"/>.</param>
-    /// <param name="port">The port used to connect to the database. By defauls <c>5432</c>.</param>
-    /// <returns>A reference to this instance after the operation has completed.</returns>
-    public static IServiceCollection AddPostgresDtroContext(
-        this IServiceCollection services,
-        string host,
-        string user,
-        string password,
-        bool useSsl,
-        string database = null,
-        int port = 5432)
-        => services.AddPostgresDtroContext(
-            BuildPostgresConnectionString(host, user, password, useSsl, database, port
-            )
-        );
 
     /// <summary>
     /// Adds <see cref="SqlStorageService"/> as <see cref="IStorageService"/>
@@ -193,32 +153,6 @@ public static class StorageServiceDIExtensions
     }
 
     /// <summary>
-    /// Adds <see cref="SqlStorageService"/> as <see cref="IStorageService"/>
-    /// with PostgreSQL backend using the provided connection parameters.
-    /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
-    /// <param name="host">The address of the database host.</param>
-    /// <param name="user">The username used to log in.</param>
-    /// <param name="password">The password used to log in.</param>
-    /// <param name="useSsl">Enables encryption of connection with SSL/TLS.</param>
-    /// <param name="database">The name of the database. By default the same as <paramref name="user"/>.</param>
-    /// <param name="port">The port used to connect to the database. By defauls <c>5432</c>.</param>
-    /// <returns>A reference to this instance after the operation has completed.</returns>
-    public static IServiceCollection AddPostgresStorage(
-        this IServiceCollection services,
-        string host,
-        string user,
-        string password,
-        bool useSsl,
-        string database = null,
-        int port = 5432)
-        => services.AddPostgresStorage(
-            BuildPostgresConnectionString(
-                host, user, password, useSsl, database, port
-            )
-        );
-
-    /// <summary>
     /// Adds an implementation of <see cref="IStorageService"/>.
     /// The specific implementation depends on what is described in the provided configuration.
     /// </summary>
@@ -227,16 +161,17 @@ public static class StorageServiceDIExtensions
     /// <returns>A reference to this instance after the operation has completed.</returns>
     public static IServiceCollection AddStorage(this IServiceCollection services, IConfiguration configuration)
     {
-        var postgresConfig = configuration.GetRequiredSection("Postgres");
+        var postgresConfig = configuration.GetSection("Postgres");
 
-        var host = postgresConfig.GetValue<string>("Host");
-        var port = postgresConfig.GetValue<int?>("Port") ?? 5432;
-        var user = postgresConfig.GetValue<string>("User");
-        var password = postgresConfig.GetValue<string>("Password");
-        var database = postgresConfig.GetValue<string>("DbName");
+        var host = postgresConfig.GetValue("Host", "localhost");
+        var port = postgresConfig.GetValue("Port", 5432);
+        var user = postgresConfig.GetValue("User", "root");
+        var password = postgresConfig.GetValue("Password", "root");
+        var database = postgresConfig.GetValue("DbName", "data");
         var useSsl = postgresConfig.GetValue("UseSsl", false);
+        int? maxPoolSize = postgresConfig.GetValue<int?>("MaxPoolSize", null);
 
-        if (configuration.GetValue<bool?>("WriteToBucket") ?? false)
+        if (configuration.GetValue("WriteToBucket", false))
         {
             return
                 services
@@ -244,20 +179,6 @@ public static class StorageServiceDIExtensions
                     .AddMultiStorageService<SqlStorageService, FileStorageService>();
         }
 
-        return services.AddPostgresStorage(host, user, password, useSsl, database, port);
+        return services.AddPostgresStorage(host, user, password, useSsl, database, port, maxPoolSize);
     }
-
-    private static string BuildPostgresConnectionString(
-        string host,
-        string user,
-        string password,
-        bool useSsl,
-        string database = null,
-        int port = 5432
-    )
-        => $"Host={host ?? throw new ArgumentNullException(nameof(host))}:{port};" +
-           $"Username={user ?? throw new ArgumentNullException(nameof(user))};" +
-           $"Password={password ?? throw new ArgumentNullException(nameof(password))};" +
-           $"Database={database ?? user};" +
-           $"{(useSsl ? "sslmode=Require;Trust Server Certificate=true;" : "")};";
 }

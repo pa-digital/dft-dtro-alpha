@@ -5,7 +5,6 @@
 /// </summary>
 public class RequestCorrelationOptions
 {
-
     /// <summary>
     /// The name of the HTTP header to be used as correlation ID.
     /// </summary>

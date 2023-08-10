@@ -11,7 +11,7 @@ namespace DfT.DTRO.Services.Validation;
 /// <inheritdoc />
 public class JsonSchemaValidationService : IJsonSchemaValidationService
 {
-    private string SchemaFolder = "Schemas";
+    private const string SchemaFolder = "Schemas";
 
     /// <inheritdoc />
     public string GetJsonSchemaForRequestAsString(Models.DTRO request)

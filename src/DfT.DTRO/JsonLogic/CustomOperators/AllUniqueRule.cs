@@ -8,7 +8,6 @@ using Json.Logic;
 
 namespace DfT.DTRO.JsonLogic.CustomOperators;
 
-
 /// <summary>
 /// A rule that evaluates to <see langword="true"/> if all the arguments have unique values; otherwise <see langword="false"/>.
 /// </summary>
@@ -19,7 +18,7 @@ public class AllUniqueRule : Rule
     /// <summary>
     /// The values that should be compared for inequality.
     /// </summary>
-    protected internal readonly Rule[] Arguments;
+    protected internal Rule[] Arguments { get; }
 
     /// <summary>
     /// The default constructor.
@@ -32,14 +31,11 @@ public class AllUniqueRule : Rule
 
     private class JsonNodeEqualityComparer : IEqualityComparer<JsonNode>
     {
-        public static JsonNodeEqualityComparer Instance = new();
+        public static JsonNodeEqualityComparer Instance { get; } = new ();
 
         public bool Equals(JsonNode x, JsonNode y)
         {
-            var xAsString = x.ToString();
-            var yAsString = y.ToString();
-
-            return xAsString == yAsString;
+            return x.ToString() == y.ToString();
         }
 
         public int GetHashCode([DisallowNull] JsonNode obj)
@@ -89,7 +85,7 @@ public class AllUniqueRuleConverter : JsonConverter<AllUniqueRule>
 
         var parameters = node is JsonArray
             ? node.Deserialize<Rule[]>()
-            : new[] { node.Deserialize<Rule>()! };
+            : new[] { node.Deserialize<Rule>() ! };
 
         return new AllUniqueRule(parameters);
     }

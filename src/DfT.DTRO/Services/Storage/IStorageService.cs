@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using DfT.DTRO.Models;
 using DfT.DTRO.Models.Filtering;
 using DfT.DTRO.Models.Pagination;
-using Newtonsoft.Json.Linq;
 
 namespace DfT.DTRO.Services.Storage;
 
@@ -14,7 +13,7 @@ namespace DfT.DTRO.Services.Storage;
 public interface IStorageService
 {
     /// <summary>
-    /// Informs whether this <see cref="IStorageService"/>
+    /// Gets a value indicating whether this <see cref="IStorageService"/>
     /// implementation is capable of searching dtros.
     /// </summary>
     public bool CanSearch { get; }
@@ -22,20 +21,13 @@ public interface IStorageService
     /// <summary>
     /// Checks if the DTRO exists in the storage.
     /// </summary>
-    /// <param name="id">The unique id of the DTRO</param>
+    /// <param name="id">The unique id of the DTRO.</param>
     /// <returns>
     /// A <see cref="Task"/> whose result is <see langword="true"/>
     /// if a DTRO with the specified ID exists;
-    /// otherwise <see langword="false"/>
+    /// otherwise <see langword="false"/>.
     /// </returns>
     Task<bool> DtroExists(Guid id);
-
-    /// <summary>
-    /// Saves a DTRO in a JSON format to a storage device.
-    /// </summary>
-    /// <param name="id">The unique id of the DTRO.</param>
-    /// <param name="jsonContent">The DTRO Json content.</param>
-    Task SaveDtroAsJson(Guid id, JObject jsonContent);
 
     /// <summary>
     /// Saves a DTRO provided in <paramref name="data"/> to a storage device
@@ -43,21 +35,15 @@ public interface IStorageService
     /// </summary>
     /// <param name="id">The unique id of the DTRO.</param>
     /// <param name="data">The DTRO Json content.</param>
-    Task SaveDtroAsJson(Guid id, object data);
+    /// <returns>A <see cref="Task"/> representing the asynchronous save operation.</returns>
+    Task SaveDtroAsJson(Guid id, Models.DTRO data);
 
     /// <summary>
     /// Gets a DTRO domain object from storage by a quoted id.
     /// </summary>
     /// <param name="id">The unique identifier of the DTRO.</param>
-    /// <returns>A <see cref="Models.DTRO"/> instance</returns>
+    /// <returns>A <see cref="Models.DTRO"/> instance.</returns>
     Task<Models.DTRO> GetDtroById(Guid id);
-
-    /// <summary>
-    /// Saves a DTRO in a JSON format to a storage device.
-    /// </summary>
-    /// <param name="id">The unique id of the DTRO.</param>
-    /// <param name="jsonContent">The DTRO Json content.</param>
-    Task UpdateDtroAsJson(Guid id, JObject jsonContent);
 
     /// <summary>
     /// Saves a DTRO provided in <paramref name="data"/> to a storage device
@@ -65,7 +51,8 @@ public interface IStorageService
     /// </summary>
     /// <param name="id">The unique id of the DTRO.</param>
     /// <param name="data">The DTRO Json content.</param>
-    Task UpdateDtroAsJson(Guid id, object data);
+    /// <returns>A <see cref="Task"/> representing the asynchronous update operation.</returns>
+    Task UpdateDtroAsJson(Guid id, Models.DTRO data);
 
     /// <summary>
     /// Tries to update the DTRO.
@@ -77,7 +64,7 @@ public interface IStorageService
     /// if the DTRO was successfully updated
     /// or <see langword="false"/> if it was not found.
     /// </returns>
-    Task<bool> TryUpdateDtroAsJson(Guid id, object data);
+    Task<bool> TryUpdateDtroAsJson(Guid id, Models.DTRO data);
 
     /// <summary>
     /// Marks the specified DTRO as deleted (does not delete the DTRO immediately).
@@ -95,11 +82,13 @@ public interface IStorageService
     /// Finds all DTROs that match the criteria specified in <paramref name="search"/>.
     /// </summary>
     /// <param name="search">The search criteria.</param>
+    /// <returns>A <see cref="Task"/> that resolves to the paginated list of <see cref="Models.DTRO"/> that match the criteria.</returns>
     Task<PaginatedResult<Models.DTRO>> FindDtros(DtroSearch search);
-    
+
     /// <summary>
     /// Finds all DTRO events that match the criteria specified in <paramref name="search"/>.
     /// </summary>
     /// <param name="search">The search criteria.</param>
+    /// <returns>A <see cref="Task"/> that resolves to a collection of <see cref="Models.DTRO"/> that match the criteria.</returns>
     Task<List<Models.DTRO>> FindDtros(DtroEventSearch search);
 }

@@ -11,13 +11,11 @@ namespace DfT.DTRO.Extensions.Configuration;
 /// </summary>
 public static class RequestCorrelationConfigurationExtensions
 {
-
     /// <summary>
     /// Adds services required to make use of request correlation.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
     /// <param name="sectionName">The configuration section to retrieve the options from.</param>
-    /// <returns></returns>
     public static IServiceCollection AddRequestCorrelation(this IServiceCollection services, string sectionName = "RequestCorrelation")
     {
         // this internally calls TryAddSingleton, so no worries if it gets called multiple times.
@@ -28,7 +26,7 @@ public static class RequestCorrelationConfigurationExtensions
             .AddScoped<IRequestCorrelationProvider, RequestCorrelationProvider>()
             .AddSingleton(s =>
             {
-                RequestCorrelationOptions options = new();
+                RequestCorrelationOptions options = new ();
                 s.GetService<IConfiguration>()
                     .GetSection(sectionName)
                     .Bind(options);
@@ -40,7 +38,7 @@ public static class RequestCorrelationConfigurationExtensions
     /// Adds request correlation to the application's request pipeline.
     /// </summary>
     /// <param name="app">The <see cref="IApplicationBuilder"/> instance.</param>
-    /// <returns>The <see cref="IApplicationBuilder"/> instance.</returns>
+    /// <returns>The <see cref="IApplicationBuilder"/> instance with applied middleware.</returns>
     public static IApplicationBuilder UseRequestCorrelation(this IApplicationBuilder app)
         => app.UseMiddleware<RequestCorrelationMiddleware>()
               .UseMiddleware<RequestCorrelationEnricherMiddleware>();

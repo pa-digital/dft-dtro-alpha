@@ -19,30 +19,31 @@ public class ComparedToCurrentTimeRule : Rule
     /// <summary>
     /// The value to compare against current time.
     /// </summary>
-    protected internal readonly Rule Value;
+    protected internal Rule Value { get; }
+
     /// <summary>
     /// The operator to use for the comparison.
     /// </summary>
-    protected internal readonly Rule Operator;
+    protected internal Rule Operator { get; }
+
     /// <summary>
     /// The offset to apply to the current time.
     /// </summary>
-    protected internal readonly Rule Offset;
+    protected internal Rule Offset { get; }
 
     /// <summary>
     /// Map between a string operator and a predicate to apply to the date and time.
     /// </summary>
-    protected internal ReadOnlyDictionary<string, Func<DateTime, DateTime, bool>> _operatorToPredicate = new(
+    protected internal ReadOnlyDictionary<string, Func<DateTime, DateTime, bool>> OperatorToPredicate { get; } = new (
         new Dictionary<string, Func<DateTime, DateTime, bool>>
         {
-            { "==", (l,r) => l == r },
-            { "!=", (l,r) => l != r },
-            { "<=", (l,r) => l <= r },
-            { ">=", (l,r) => l >= r },
-            { "<", (l,r) => l < r },
-            { ">", (l,r) => l > r },
-        }
-    );
+            { "==", (l, r) => l == r },
+            { "!=", (l, r) => l != r },
+            { "<=", (l, r) => l <= r },
+            { ">=", (l, r) => l >= r },
+            { "<", (l, r) => l < r },
+            { ">", (l, r) => l > r }
+        });
 
     /// <summary>
     /// The default operator.
@@ -50,7 +51,8 @@ public class ComparedToCurrentTimeRule : Rule
     /// <param name="value">A <see cref="Rule"/> that resolves to a <see cref="DateTime"/> to be compared against current time.</param>
     /// <param name="op">A <see cref="Rule"/> that resolves to one of the recognized comparison operators.</param>
     /// <param name="offset">An optional <see cref="Rule"/> that resolves to an offset to be applied to the current date.</param>
-    public ComparedToCurrentTimeRule(Rule value, Rule op, Rule offset = null) {
+    public ComparedToCurrentTimeRule(Rule value, Rule op, Rule offset = null)
+    {
         Value = value;
         Operator = op;
         Offset = offset;
@@ -75,7 +77,8 @@ public class ComparedToCurrentTimeRule : Rule
         {
             return false;
         }
-        if (!_operatorToPredicate.TryGetValue(operation, out var predicate))
+
+        if (!OperatorToPredicate.TryGetValue(operation, out Func<DateTime, DateTime, bool> predicate))
         {
             return false;
         }
@@ -103,7 +106,7 @@ public class ComparedToCurrentTimeRuleConverter : JsonConverter<ComparedToCurren
 
         var parameters = node is JsonArray
             ? node.Deserialize<Rule[]>()
-            : new[] { node.Deserialize<Rule>()! };
+            : new[] { node.Deserialize<Rule>() ! };
 
         if (parameters.Length < 2 || parameters.Length > 3)
         {

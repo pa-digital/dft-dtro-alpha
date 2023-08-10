@@ -50,8 +50,9 @@ public class SearchController : ControllerBase
     /// Finds existing DTROs that match the requested criteria.
     /// </summary>
     /// <param name="body">A DTRO search criteria object.</param>
-    /// <response code="200">Ok</response>
-    /// <response code="400">Bad request</response>
+    /// <response code="200">Ok.</response>
+    /// <response code="400">Bad request.</response>
+    /// <returns>Dtros matching search criteria.</returns>
     [HttpPost]
     [Route("/v1/search")]
     [ValidateModelState]
@@ -61,10 +62,10 @@ public class SearchController : ControllerBase
     {
         const string methodName = "dtro.search";
 
-        _logger.LogInformation("[{method}] Searching DTROs with criteria {searchCriteria}",
+        _logger.LogInformation(
+            "[{method}] Searching DTROs with criteria {searchCriteria}",
             methodName,
-            body.ToJsonString()
-        );
+            body.ToJsonString());
 
         try
         {
@@ -73,7 +74,7 @@ public class SearchController : ControllerBase
             IEnumerable<DtroSearchResult> mappedResult = _mappingService.MapToSearchResult(result.Results);
 
             PaginatedResponse<DtroSearchResult> paginatedResult =
-                new(mappedResult.ToList().AsReadOnly(),
+                new (mappedResult.ToList().AsReadOnly(),
                     body.Page,
                     result.TotalCount);
 

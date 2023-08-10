@@ -5,11 +5,12 @@ using System.Runtime.Serialization;
 namespace DfT.DTRO.Models.Filtering;
 
 /// <summary>
-/// Object definition for condition related to a single value
+/// Object definition for condition related to a single value.
 /// </summary>
-/// <typeparam name="T">Type of the value</typeparam>
+/// <typeparam name="T">Type of the value.</typeparam>
 [DataContract]
-public class ValueCondition<T> where T : IComparable<T>
+public class ValueCondition<T>
+    where T : IComparable<T>
 {
     /// <summary>
     /// Operator used to apply the condition.
@@ -18,7 +19,6 @@ public class ValueCondition<T> where T : IComparable<T>
     [EnumDataType(typeof(ComparisonOperator))]
     [DataMember(Name = "operator")]
     public ComparisonOperator Operator { get; set; }
-
 
     /// <summary>
     /// Value of the condition.
@@ -30,9 +30,9 @@ public class ValueCondition<T> where T : IComparable<T>
     /// <summary>
     /// Checks if the <paramref name="input"/> value satisfies the condition.
     /// </summary>
-    /// <param name="input">Value to evaluate against</param>
-    /// <returns>Result of condition evaluation</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Operator is not supported</exception>
+    /// <param name="input">Value to evaluate against.</param>
+    /// <returns>Result of condition evaluation.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Operator is not supported.</exception>
     public bool IsSatisfied(T input)
     {
         return Operator switch

@@ -20,10 +20,10 @@ public class DtroEvent
     public DateTime PublicationTime { get; set; }
 
     /// <summary>
-    /// The unique identifier of the highway authority that created the TRO.
+    /// The unique identifier of the traffic authority that created the TRO.
     /// </summary>
-    [DataMember(Name = "ha")]
-    public int HighwayAuthorityId { get; set; }
+    [DataMember(Name = "ta")]
+    public int TrafficAuthorityId { get; set; }
 
     /// <summary>
     /// Published title of the Traffic Regulation Order.
@@ -88,7 +88,7 @@ public class DtroEvent
             PublicationTime = dtro.Created.Value,
             OrderReportingPoint = dtro.OrderReportingPoints,
             VehicleType = dtro.VehicleTypes,
-            HighwayAuthorityId = dtro.HighwayAuthorityId,
+            TrafficAuthorityId = dtro.TrafficAuthorityId,
             RegulationType = dtro.RegulationTypes,
             TroName = dtro.TroName,
             RegulationStart = regulationStartTimes,
@@ -106,7 +106,7 @@ public class DtroEvent
             PublicationTime = dtro.Created.Value,
             OrderReportingPoint = dtro.OrderReportingPoints,
             VehicleType = dtro.VehicleTypes,
-            HighwayAuthorityId = dtro.HighwayAuthorityId,
+            TrafficAuthorityId = dtro.TrafficAuthorityId,
             RegulationType = dtro.RegulationTypes,
             TroName = dtro.TroName,
             RegulationStart = regulationStartTimes,
@@ -124,7 +124,7 @@ public class DtroEvent
             PublicationTime = dtro.Created.Value,
             OrderReportingPoint = dtro.OrderReportingPoints,
             VehicleType = dtro.VehicleTypes,
-            HighwayAuthorityId = dtro.HighwayAuthorityId,
+            TrafficAuthorityId = dtro.TrafficAuthorityId,
             RegulationType = dtro.RegulationTypes,
             TroName = dtro.TroName,
             RegulationStart = regulationStartTimes,

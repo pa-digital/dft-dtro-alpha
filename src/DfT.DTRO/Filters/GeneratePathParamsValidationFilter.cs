@@ -7,15 +7,15 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 namespace DfT.DTRO.Filters;
 
 /// <summary>
-/// Path Parameter Validation Rules Filter
+/// Path Parameter Validation Rules Filter.
 /// </summary>
 public class GeneratePathParamsValidationFilter : IOperationFilter
 {
     /// <summary>
-    /// Constructor
+    /// Constructor.
     /// </summary>
-    /// <param name="operation">Operation</param>
-    /// <param name="context">OperationFilterContext</param>
+    /// <param name="operation">Operation.</param>
+    /// <param name="context">OperationFilterContext.</param>
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
         var pars = context.ApiDescription.ParameterDescriptions;
@@ -55,6 +55,7 @@ public class GeneratePathParamsValidationFilter : IOperationFilter
                     {
                         minLenght = (int)stringLengthAttr.NamedArguments.Single(p => p.MemberName == "MinimumLength").TypedValue.Value;
                     }
+
                     maxLength = (int)stringLengthAttr.ConstructorArguments[0].Value;
                 }
 

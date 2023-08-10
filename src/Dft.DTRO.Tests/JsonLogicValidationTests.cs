@@ -748,16 +748,16 @@ public class JsonLogicValidationTests
     }
 
     [Fact]
-    public async Task AllowsHaInSwaRules()
+    public async Task AllowsTaInSwaRules()
     {
         var dtro = PrepareDtro(@"
         {
             ""source"": {
-                ""ha"": 10
+                ""ta"": 10
             }
         }");
 
-        await UseRulesByName("HaInSwaCodes");
+        await UseRulesByName("TaInSwaCodes");
 
         var sut = new JsonLogicValidationService(ruleSource.Object);
 
@@ -767,16 +767,16 @@ public class JsonLogicValidationTests
     }
 
     [Fact]
-    public async Task DisallowsHaNotInSwaRules()
+    public async Task DisallowsTaNotInSwaRules()
     {
         var dtro = PrepareDtro(@"
         {
             ""source"": {
-                ""ha"": 9
+                ""ta"": 9
             }
         }");
 
-        await UseRulesByName("HaInSwaCodes");
+        await UseRulesByName("TaInSwaCodes");
 
         var sut = new JsonLogicValidationService(ruleSource.Object);
 
@@ -2708,7 +2708,7 @@ public class JsonLogicValidationTests
     private async Task UseAllRules()
     {
         var source = new FileJsonLogicRuleSource();
-        var rules = await source.GetRules("dtro-3.1.2");
+        var rules = await source.GetRules("dtro-3.2.0");
 
         ruleSource.Setup(it => it.GetRules(It.IsAny<string>())).ReturnsAsync(rules);
     }
@@ -2716,7 +2716,7 @@ public class JsonLogicValidationTests
     private async Task UseRulesByName(params string[] names)
     {
         var source = new FileJsonLogicRuleSource();
-        var rules = await source.GetRules("dtro-3.1.2");
+        var rules = await source.GetRules("dtro-3.2.0");
 
         ruleSource.Setup(it => it.GetRules(It.IsAny<string>())).ReturnsAsync(rules.Where(it => names.Contains(it.Name)));
     }
@@ -2724,7 +2724,7 @@ public class JsonLogicValidationTests
     private async Task UseRulesByPath(params string[] paths)
     {
         var source = new FileJsonLogicRuleSource();
-        var rules = await source.GetRules("dtro-3.1.2");
+        var rules = await source.GetRules("dtro-3.2.0");
 
         ruleSource.Setup(it => it.GetRules(It.IsAny<string>())).ReturnsAsync(rules.Where(it => paths.Any(path => it.Path.StartsWith(path))));
     }
@@ -2732,7 +2732,7 @@ public class JsonLogicValidationTests
     private async Task UseRulesByIndex(params int[] indexes)
     {
         var source = new FileJsonLogicRuleSource();
-        var rules = await source.GetRules("dtro-3.1.2");
+        var rules = await source.GetRules("dtro-3.2.0");
 
         if (indexes.Max() >= rules.Count())
         {

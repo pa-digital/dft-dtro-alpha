@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using DfT.DTRO.Models.Conditions.Base;
 using DfT.DTRO.Models.Conditions.ValueRules;
 using DfT.DTRO.Models.Filtering;
@@ -6,14 +7,16 @@ using DfT.DTRO.Models.Filtering;
 namespace DfT.DTRO.Models.Conditions;
 
 /// <summary>
-/// 
+/// The types of license referenced in <see cref="DriverCondition"/>.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LicenseCharacteristicsType
 {
     /// <summary>
     /// A permanent license.
     /// </summary>
     Permanent,
+
     /// <summary>
     /// A provisional license.
     /// </summary>
@@ -30,14 +33,17 @@ public class DriverCondition : Condition
     /// Permissible values include ‘disabledWithPermit’, ‘learnerDriver’, ‘localResident’, etc.
     /// </summary>
     public string DriverCharacteristicsType { get; init; }
+
     /// <summary>
     /// Indicates a characteristic relating to the driver's license.
     /// </summary>
     public LicenseCharacteristicsType? LicenseCharacteristicsType { get; init; }
+
     /// <summary>
     /// Indicates the allowed age of driver.
     /// </summary>
     public IValueRule<int> AgeOfDriver { get; init; }
+
     /// <summary>
     /// Indicates the allowed time of license ownership.
     /// </summary>
@@ -74,7 +80,6 @@ public class DriverCondition : Condition
 
         return (ageOfDriver?.Contradicts(otherAgeOfDriver) ?? false)
             || (timeDriversLicenseHeld?.Contradicts(otherTimeDriversLicenseHeld) ?? false);
-        
     }
 
     /// <inheritdoc/>

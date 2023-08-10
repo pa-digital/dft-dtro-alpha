@@ -37,7 +37,7 @@ public class SchemasController : ControllerBase
     /// <summary>
     /// Gets available data model JSON schemas.
     /// </summary>
-    /// <response code="200">Okay</response>
+    /// <response code="200">Okay.</response>
     [HttpGet]
     [Route("/v1/schemas")]
     public virtual IActionResult GetModels()
@@ -51,8 +51,8 @@ public class SchemasController : ControllerBase
     /// <summary>
     /// Gets a schema by a named identifier.
     /// </summary>
-    /// <response code="200">Okay</response>
-    /// <response code="404">Not found</response>
+    /// <response code="200">Okay.</response>
+    /// <response code="404">Not found.</response>
     [HttpGet]
     [Route("/v1/schemas/{version}")]
     public virtual IActionResult GetSchema(string version)

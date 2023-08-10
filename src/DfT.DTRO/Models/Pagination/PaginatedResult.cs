@@ -5,13 +5,14 @@ namespace DfT.DTRO.Models.Pagination;
 /// <summary>
 /// Result of a query with paginated data.
 /// </summary>
+/// <typeparam name="T">Type of result.</typeparam>
 public class PaginatedResult<T>
 {
     /// <summary>
     /// Creates a paginated query result.
     /// </summary>
-    /// <param name="results"></param>
-    /// <param name="totalCount"></param>
+    /// <param name="results">Results list.</param>
+    /// <param name="totalCount">Total count of records.</param>
     public PaginatedResult(IReadOnlyCollection<T> results, int totalCount)
     {
         Results = results;

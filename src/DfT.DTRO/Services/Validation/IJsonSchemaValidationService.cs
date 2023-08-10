@@ -31,7 +31,7 @@ public interface IJsonSchemaValidationService
     /// Sources model versions that are available to submit against.
     /// </summary>
     /// <param name="httpContext">The inbound HTTP context for protocol assessment in specifying relative location.</param>
-    /// <returns></returns>
+    /// <returns>List of schema definitions.</returns>
     IList<SchemaDefinition> GetSchemas(HttpContext httpContext);
 
     /// <summary>

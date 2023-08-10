@@ -27,7 +27,7 @@ public abstract class Condition : ICloneable
     /// Checks if this <see cref="Condition"/> contradicts another <see cref="Condition"/> (both can't be true at the same time).
     /// </summary>
     /// <remarks>
-    /// This method should be commutative, such that <c>this.Contradicts(other) == other.Contradicts(this)</c> is always <see langword="true"/>
+    /// This method should be commutative, such that <c>this.Contradicts(other) == other.Contradicts(this)</c> is always <see langword="true"/>.
     /// </remarks>
     /// <param name="other">The <see cref="Condition"/> to check contradiction with.</param>
     /// <returns><see langword="true"/> if this <see cref="Condition"/> contradicts <paramref name="other"/>; otherwise <see langword="false"/>.</returns>

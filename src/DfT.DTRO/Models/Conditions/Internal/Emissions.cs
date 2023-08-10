@@ -15,6 +15,7 @@ public class Emissions : IEquatable<Emissions>
     /// according to the 1970 Directive 70/220/EEC and its several amendments.
     /// </summary>
     public string EmissionClassificationEuro { get; init; }
+
     /// <summary>
     /// specifies optionally multiple free-text descriptions of
     /// classification types for vehicle emissions, distinct from the Euro classifications.

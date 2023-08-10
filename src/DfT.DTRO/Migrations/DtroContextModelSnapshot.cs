@@ -19,7 +19,7 @@ namespace DfT.DTRO.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.19")
+                .HasAnnotation("ProductVersion", "6.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -45,9 +45,9 @@ namespace DfT.DTRO.Migrations
                     b.Property<DateTime?>("DeletionTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("HighwayAuthorityId")
+                    b.Property<int>("TrafficAuthorityId")
                         .HasColumnType("integer")
-                        .HasColumnName("HA");
+                        .HasColumnName("TA");
 
                     b.Property<DateTime?>("LastUpdated")
                         .HasColumnType("timestamp with time zone");

@@ -14,6 +14,7 @@ public class SchemaVersionValueConverter : ValueConverter<SchemaVersion, string>
     public SchemaVersionValueConverter()
         : base(
             schema => schema.ToString(),
-            dbValue => new SchemaVersion(dbValue))
-    { }
+            databaseValue => new SchemaVersion(databaseValue))
+    {
+    }
 }

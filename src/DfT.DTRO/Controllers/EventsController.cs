@@ -30,8 +30,7 @@ public class EventsController : ControllerBase
     /// <param name="eventMappingService">An <see cref="IDtroMappingService"/> instance.</param>
     public EventsController(
         IStorageService storageService,
-        IDtroMappingService eventMappingService
-        )
+        IDtroMappingService eventMappingService)
     {
         _storageService = storageService;
         _eventMappingService = eventMappingService;
@@ -40,8 +39,8 @@ public class EventsController : ControllerBase
     /// <summary>
     /// Endpoint for querying central data store events (e.g., D-TROs being created, updated or deleted).
     /// </summary>
-    /// <param name="search">A search query object</param>
-    /// <returns></returns>
+    /// <param name="search">A search query object.</param>
+    /// <returns>List of events.</returns>
     [HttpPost("/v1/events")]
     [FeatureGate(FeatureNames.DtroRead)]
     [ValidateModelState]
@@ -52,8 +51,7 @@ public class EventsController : ControllerBase
         if (search.Since is not null && search.Since > DateTime.Now)
         {
             return BadRequest(
-                new ApiErrorResponse("Bad request", "The datetime for the since field cannot be in the future.")
-            );
+                new ApiErrorResponse("Bad request", "The datetime for the since field cannot be in the future."));
         }
 
         var searchRes = await _storageService.FindDtros(search);

@@ -15,18 +15,17 @@ public class ValueRulePropertyNamesAttribute : JsonConverterAttribute
     /// <summary>
     /// A constructor that allows overriding parameter names.
     /// </summary>
-    /// <param name="OperatorPropertyName">The parameter name for the operator (<c>"operator"</c> by default)</param>
-    /// <param name="ValuePropertyName">The parameter name for the value (<c>"value"</c> by default)</param>
-    public ValueRulePropertyNamesAttribute(string OperatorPropertyName = null, string ValuePropertyName = null) : base()
+    /// <param name="operatorPropertyName">The parameter name for the operator (<c>"operator"</c> by default).</param>
+    /// <param name="valuePropertyName">The parameter name for the value (<c>"value"</c> by default).</param>
+    public ValueRulePropertyNamesAttribute(string operatorPropertyName = null, string valuePropertyName = null)
     {
-        _operatorPropertyName = OperatorPropertyName;
-        _valuePropertyName = ValuePropertyName;
+        _operatorPropertyName = operatorPropertyName;
+        _valuePropertyName = valuePropertyName;
     }
 
     /// <summary>
     /// Creates the converter that handles parameter names in a way defined in this attribute.
     /// </summary>
-    /// <param name="typeToConvert"></param>
     /// <returns>
     /// The converter.
     /// </returns>

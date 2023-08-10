@@ -11,6 +11,7 @@ public interface IAndRule : IValueRule
     /// The first rule in the conjunction.
     /// </summary>
     IValueRule First { get; }
+
     /// <summary>
     /// The second rule in the conjunction.
     /// </summary>
@@ -21,18 +22,20 @@ public interface IAndRule : IValueRule
 /// Represents a rule that is a conjunction of two other rules.
 /// </summary>
 /// <typeparam name="T">The type of parameter used in this rule.</typeparam>
-/// <param name="First">The first rule in the conjunction.</param>
-/// <param name="Second">The second rule in the conjunction.</param>
-public readonly record struct AndRule<T>(IValueRule<T> First, IValueRule<T> Second) : IAndRule, IValueRule<T> where T : IComparable<T>
+/// <param name="first">The first rule in the conjunction.</param>
+/// <param name="second">The second rule in the conjunction.</param>
+public readonly record struct AndRule<T>(IValueRule<T> first, IValueRule<T> second)
+    : IAndRule, IValueRule<T>
+    where T : IComparable<T>
 {
-    IValueRule IAndRule.First => First;
+    IValueRule IAndRule.First => first;
 
-    IValueRule IAndRule.Second => Second;
+    IValueRule IAndRule.Second => second;
 
     /// <inheritdoc/>
     public bool Apply(T value)
     {
-        return First.Apply(value) && Second.Apply(value);
+        return first.Apply(value) && second.Apply(value);
     }
 
     /// <inheritdoc/>
@@ -43,21 +46,21 @@ public readonly record struct AndRule<T>(IValueRule<T> First, IValueRule<T> Seco
             return false;
         }
 
-        return other.Contradicts(First) || other.Contradicts(Second);
+        return other.Contradicts(first) || other.Contradicts(second);
     }
 
     /// <inheritdoc/>
     public IValueRule<T> Inverted()
     {
-        return new OrRule<T>(First.Inverted(), Second.Inverted());
+        return new OrRule<T>(first.Inverted(), second.Inverted());
     }
 
     /// <summary>
     /// Returns a string representation of this rule.
     /// </summary>
-    /// <returns>A string representation of this rule</returns>
+    /// <returns>A string representation of this rule.</returns>
     public override string ToString()
     {
-        return $"({First} && {Second})";
+        return $"({first} && {second})";
     }
 }

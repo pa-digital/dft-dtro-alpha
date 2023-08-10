@@ -14,6 +14,7 @@ public class OccupantCondition : Condition
     /// Indicates registered disabled permit holder.
     /// </summary>
     public bool DisabledWithPermit { get; init; }
+
     /// <summary>
     /// Indicates the allowed number of occupants.
     /// </summary>

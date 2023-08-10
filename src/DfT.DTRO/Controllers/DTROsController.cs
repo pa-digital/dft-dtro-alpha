@@ -4,25 +4,25 @@
  * A prototype implementation of API endpoints for publishing and consuming Traffic Regulation orders.
  *
  * OpenAPI spec version: 0.0.1
- * 
+ *
  */
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
-using DfT.DTRO.Attributes;
-using System.IO;
-using DfT.DTRO.Models;
+
 using System;
-using Google;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using DfT.DTRO.Attributes;
+using DfT.DTRO.Caching;
+using DfT.DTRO.FeatureManagement;
+using DfT.DTRO.Models;
+using DfT.DTRO.RequestCorrelation;
 using DfT.DTRO.Services.Storage;
 using DfT.DTRO.Services.Validation;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.FeatureManagement.Mvc;
-using DfT.DTRO.FeatureManagement;
 using Microsoft.FeatureManagement;
-using DfT.DTRO.RequestCorrelation;
+using Microsoft.FeatureManagement.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace DfT.DTRO.Controllers;
 
@@ -40,6 +40,7 @@ public class DTROsController : ControllerBase
     private readonly ISemanticValidationService _semanticValidationService;
     private readonly ILogger<DTROsController> _logger;
     private readonly IJsonLogicValidationService _jsonLogicValidationService;
+    private readonly IDtroCache _dtroCache;
 
     /// <summary>
     /// Default constructor.
@@ -49,6 +50,7 @@ public class DTROsController : ControllerBase
     /// <param name="storageService">An <see cref="IStorageService"/> instance.</param>
     /// <param name="correlationProvider">An <see cref="IRequestCorrelationProvider"/> instance.</param>
     /// <param name="jsonLogicValidationService">An <see cref="IJsonLogicValidationService"/> instance.</param>
+    /// <param name="dtroCache">An <see cref="IDtroCache"/> instance.</param>
     /// <param name="logger">An <see cref="ILogger{DTROsController}"/> instance.</param>
     public DTROsController(
         IJsonSchemaValidationService jsonSchemaValidationService,
@@ -56,6 +58,7 @@ public class DTROsController : ControllerBase
         IStorageService storageService,
         IRequestCorrelationProvider correlationProvider,
         IJsonLogicValidationService jsonLogicValidationService,
+        IDtroCache dtroCache,
         ILogger<DTROsController> logger)
     {
         _jsonSchemaValidationService = jsonSchemaValidationService;
@@ -64,20 +67,22 @@ public class DTROsController : ControllerBase
         _correlationProvider = correlationProvider;
         _logger = logger;
         _jsonLogicValidationService = jsonLogicValidationService;
+        _dtroCache = dtroCache;
     }
 
     /// <summary>
     /// Creates a new DTRO.
     /// </summary>
     /// <param name="body">A DTRO submission that satisfies the schema for the model version being submitted.</param>
-    /// <response code="201">Created</response>
-    /// <response code="400">Bad request</response>
-    /// <response code="404">Not found</response>
+    /// <response code="201">Created.</response>
+    /// <response code="400">Bad request.</response>
+    /// <response code="404">Not found.</response>
+    /// <returns>Id of the DTRO.</returns>
     [HttpPost]
     [Route("/v1/dtros")]
     [ValidateModelState]
     [FeatureGate(FeatureNames.DtroWrite)]
-    [SwaggerResponse(statusCode: 201, type: typeof(Models.DTROResponse), description: "Created")]
+    [SwaggerResponse(201, type: typeof(DTROResponse), description: "Created")]
     public async Task<IActionResult> CreateDtro([FromBody] Models.DTRO body)
     {
         const string methodName = "dtro.create";
@@ -112,9 +117,10 @@ public class DTROsController : ControllerBase
     /// <remarks>
     /// The payload requires a full DTRO which will replace the TRO with the quoted ID.
     /// </remarks>
-    /// <response code="200">Ok</response>
-    /// <response code="400">Bad request</response>
-    /// <response code="404">Not found</response>
+    /// <response code="200">Ok.</response>
+    /// <response code="400">Bad request.</response>
+    /// <response code="404">Not found.</response>
+    /// <returns>Id of the updated DTRO.</returns>
     [HttpPut]
     [Route("/v1/dtros/{id}")]
     [ValidateModelState]
@@ -137,8 +143,7 @@ public class DTROsController : ControllerBase
         if (!await _storageService.TryUpdateDtroAsJson(id, body))
         {
             return NotFound(
-                new ApiErrorResponse("Not found", $"D-TRO with id {id} not found")
-            );
+                new ApiErrorResponse("Not found", $"D-TRO with id {id} not found"));
         }
 
         var response = new DTROResponse
@@ -148,14 +153,16 @@ public class DTROsController : ControllerBase
 
         _logger.LogInformation(new EventId(200, "Updated"), "[{method}] Successfully updated DTRO with ID {dtroId}", methodName, id);
 
+        await _dtroCache.InvalidateDtro(id);
+
         return Ok(response);
     }
 
     /// <summary>
     /// Gets a DTRO by ID.
     /// </summary>
-    /// <response code="200">Okay</response>
-    /// <response code="404">Not found</response>
+    /// <response code="200">Okay.</response>
+    /// <response code="404">Not found.</response>
     [HttpGet]
     [Route("/v1/dtros/{id}")]
     [FeatureGate(RequirementType.Any, FeatureNames.DtroRead, FeatureNames.DtroWrite)]
@@ -164,50 +171,31 @@ public class DTROsController : ControllerBase
         const string methodName = "dtro.get_by_id";
         _logger.LogInformation("[{method}] Getting DTRO with ID {dtroId}", methodName, id);
 
-        try
+        var cachedDtro = await _dtroCache.GetDtro(id);
+
+        if (cachedDtro is not null)
         {
-            var dtroDomainObject = await _storageService.GetDtroById(id);
-
-            if (dtroDomainObject is null || dtroDomainObject.Deleted)
-            {
-                return NotFound(
-                    new ApiErrorResponse("Not found", $"D-TRO with id {id} not found")
-                );
-            }
-
-            return Ok(DTROResponseDto.FromDTRO(dtroDomainObject));
+            return Ok(DTROResponseDto.FromDTRO(cachedDtro));
         }
-        catch(AggregateException ae)
-        {
-            if (ae.InnerException is KeyNotFoundException)
-            {
-                return NotFound(
-                    new ApiErrorResponse("Not found", $"D-TRO with id {id} not found")
-                );
-            }
 
-            return StatusCode(StatusCodes.Status500InternalServerError); 
-        }
-        catch (GoogleApiException)
+        Models.DTRO dtroDomainObject = await _storageService.GetDtroById(id);
+
+        if (dtroDomainObject is null || dtroDomainObject.Deleted)
         {
             return NotFound(
-                new ApiErrorResponse("Not found", $"D-TRO with id {id} not found")
-            );
+                new ApiErrorResponse("Not found", $"D-TRO with id {id} not found"));
         }
-        catch (KeyNotFoundException)
-        {
-            return NotFound(
-                new ApiErrorResponse("Not found", $"D-TRO with id {id} not found")
-            );
-        }
+
+        await _dtroCache.CacheDtro(dtroDomainObject);
+
+        return Ok(DTROResponseDto.FromDTRO(dtroDomainObject));
     }
 
     /// <summary>
     /// Marks a DTRO as deleted.
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    /// <response code="204">Okay</response>
+    /// <param name="id">Id of the DTRO.</param>
+    /// <response code="204">Okay.</response>
     [HttpDelete("/v1/dtros/{id}")]
     [FeatureGate(FeatureNames.DtroWrite)]
     [SwaggerResponse(statusCode: 204, description: "Successfully deleted the DTRO.")]
@@ -216,9 +204,15 @@ public class DTROsController : ControllerBase
     {
         var deleted = await _storageService.DeleteDtro(id);
 
-        return deleted ? NoContent() : NotFound(
-                new ApiErrorResponse("Not found", $"D-TRO with id {id} not found")
-            );
+        if (!deleted)
+        {
+            return NotFound(new ApiErrorResponse("Not found", $"D-TRO with id {id} not found"));
+        }
+
+        await _dtroCache.InvalidateDtro(id);
+        await _dtroCache.InvalidateDtroExists(id);
+
+        return NoContent();
     }
 
     /// <summary>
@@ -231,7 +225,6 @@ public class DTROsController : ControllerBase
     /// </returns>
     private async Task<IActionResult> ValidateDtro(Models.DTRO dtro)
     {
-        var errors = new List<string>();
         string jsonSchemaAsString;
 
         try
@@ -242,8 +235,7 @@ public class DTROsController : ControllerBase
         {
             // If file of quoted name could not be found this indicates invalid schema version ID.
             return NotFound(
-                new ApiErrorResponse("Not found", "Schema version not found")
-            );
+                new ApiErrorResponse("Not found", "Schema version not found"));
         }
 
         var validationErrors = _jsonSchemaValidationService.ValidateRequestAgainstJsonSchema(jsonSchemaAsString, dtro.DtroDataToJsonString());
@@ -251,8 +243,7 @@ public class DTROsController : ControllerBase
         if (validationErrors.Count > 0)
         {
             return BadRequest(
-                new ApiErrorResponse("Bad request", new List<object>(validationErrors))
-            );
+                new ApiErrorResponse("Bad request", new List<object>(validationErrors)));
         }
 
         var logicValidationErrors = await _jsonLogicValidationService.ValidateCreationRequest(dtro);
@@ -260,8 +251,7 @@ public class DTROsController : ControllerBase
         if (logicValidationErrors.Count > 0)
         {
             return BadRequest(
-                new ApiErrorResponse("Bad request", new List<object>(logicValidationErrors))
-            );
+                new ApiErrorResponse("Bad request", new List<object>(logicValidationErrors)));
         }
 
         var semanticValidationErrors = await _semanticValidationService.ValidateCreationRequest(dtro);
@@ -269,8 +259,7 @@ public class DTROsController : ControllerBase
         if (semanticValidationErrors.Count > 0)
         {
             return BadRequest(
-                new ApiErrorResponse("Bad request", new List<object>(semanticValidationErrors))
-            );
+                new ApiErrorResponse("Bad request", new List<object>(semanticValidationErrors)));
         }
 
         return null;

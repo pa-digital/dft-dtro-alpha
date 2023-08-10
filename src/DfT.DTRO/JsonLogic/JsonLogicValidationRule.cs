@@ -20,7 +20,7 @@ public class JsonLogicValidationRule
     /// </summary>
     [JsonPropertyName("path")]
     public string Path { get; set; }
-    
+
     /// <summary>
     /// The error message to display if the rule fails.
     /// </summary>
