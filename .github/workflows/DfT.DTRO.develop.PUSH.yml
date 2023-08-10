@@ -17,6 +17,11 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    env:
+      # DB credentials for integration tests
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: data
     steps:
     - uses: actions/checkout@v2
     - name: Setup Postgres Database for tests
