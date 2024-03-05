@@ -67,13 +67,13 @@ variable "allowed_ips" {
 variable "publish_service_domain" {
   type        = string
   description = "Name of the domain where the prototype is published"
-  default     = "publish.dtro-prototype.dev"
+  default     = "dtro-alpha-publishing-prototype.dft.gov.uk"
 }
 
 variable "search_service_domain" {
   type        = string
   description = "Name of the domain where the prototype is published"
-  default     = "search.dtro-prototype.dev"
+  default     = "dtro-alpha-access-prototype.dft.gov.uk"
 }
 
 variable "logs_retention_in_days" {
