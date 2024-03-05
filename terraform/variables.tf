@@ -7,7 +7,7 @@ variable "region" {
 variable "project" {
   type        = string
   description = "GCP project ID to which resources will be deployed."
-  default     = "dtro-prototype"
+  default     = "pa-dft-dtro-sandbox"
 }
 
 variable "firestore_region" {
