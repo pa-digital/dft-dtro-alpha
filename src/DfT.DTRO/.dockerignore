@@ -1,1 +1,4 @@
-appsettings.Development.Local.json
+appsettings.Development.Local.json.example
+.editorconfig
+.gitignore
+stylecop.ruleset
