@@ -6,7 +6,6 @@ on:
     branches:
       - develop
       - hotfix/**
-      - DPPB-**
     paths:
       - '!README.md'
       - '!**/README.MD'
