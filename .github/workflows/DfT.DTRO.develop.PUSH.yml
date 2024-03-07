@@ -6,6 +6,7 @@ on:
     branches:
       - develop
       - hotfix/**
+      - DPPB-**
     paths:
       - '!README.md'
       - '!**/README.MD'
@@ -22,7 +23,7 @@ jobs:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: data
-    
+
     steps:
     - uses: actions/checkout@v2
     - name: Setup Postgres Database for tests
