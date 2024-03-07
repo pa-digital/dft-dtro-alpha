@@ -10,3 +10,4 @@
 
 # Local adjustments in docker compose
 docker-compose.override.yml
+.DS_Store
