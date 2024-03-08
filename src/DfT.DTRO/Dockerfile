@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build-env
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build-env
 WORKDIR /app
 
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
@@ -10,10 +10,10 @@ RUN dotnet restore
 # copy everything else and build
 COPY . ./
 RUN dotnet restore -r alpine-x64 /p:PublishReadyToRun=true
-RUN dotnet publish --framework net6.0 -o out -c Release -r alpine-x64 --self-contained true /p:PublishTrimmed=true /p:PublishReadyToRun=true /p:PublishSingleFile=true
+RUN dotnet publish --framework net6.0 -o out -c Release -r alpine-x64 --self-contained true /p:PublishReadyToRun=true /p:PublishSingleFile=true
 
 # build common runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS runtime
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS runtime
 WORKDIR /app
 COPY --from=build-env /app/out .
 
@@ -37,7 +37,7 @@ ENV FeatureManagement__DtroRead=True
 ENTRYPOINT ["./DfT.DTRO"]
 
 # build image for Postgres migrations job
-FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS postgres-migrations-job
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:6.0-alpine AS postgres-migrations-job
 WORKDIR /app
 
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
