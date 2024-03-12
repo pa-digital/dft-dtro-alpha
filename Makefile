@@ -27,22 +27,21 @@ build:
 test:
 	dotnet test
 
-build-test: build test
+build-test:
+	build test
 
-docker-build:
-	docker build --target publish-service -t dtro-publish-api ./src/DfT.DTRO
-	docker build --target search-service -t dtro-search-api ./src/DfT.DTRO
-	docker build --target postgres-migrations-job -t dtro-postgres-migrations-job ./src/DfT.DTRO
+docker-build-push:
+	gcloud builds submit
 
-docker-push:
-	docker tag dtro-publish-api $(REGISTRY_URL)/dtro-prototype-publish:latest
-	docker push $(REGISTRY_URL)/dtro-prototype-publish:latest
+# docker-push:
+# 	docker tag dtro-publish-api $(REGISTRY_URL)/dtro-prototype-publish:latest
+# 	docker push $(REGISTRY_URL)/dtro-prototype-publish:latest
 
-	docker tag dtro-search-api $(REGISTRY_URL)/dtro-prototype-search:latest
-	docker push $(REGISTRY_URL)/dtro-prototype-search:latest
+# 	docker tag dtro-search-api $(REGISTRY_URL)/dtro-prototype-search:latest
+# 	docker push $(REGISTRY_URL)/dtro-prototype-search:latest
 
-	docker tag dtro-postgres-migrations-job $(REGISTRY_URL)/dtro-prototype-postgres-migrations-job:latest
-	docker push $(REGISTRY_URL)/dtro-prototype-postgres-migrations-job:latest
+# 	docker tag dtro-postgres-migrations-job $(REGISTRY_URL)/dtro-prototype-postgres-migrations-job:latest
+# 	docker push $(REGISTRY_URL)/dtro-prototype-postgres-migrations-job:latest
 
 init:
 	cd terraform && make init

@@ -6,7 +6,7 @@ resource "null_resource" "docker_build" {
 
   provisioner "local-exec" {
     working_dir = ".."
-    command     = "make docker-build && make docker-push"
+    command     = "make docker-build-push"
 
     environment = {
       REGISTRY_URL = "${var.region}-docker.pkg.dev/${var.project}/${var.repository_id}"
