@@ -12,9 +12,14 @@ resource "google_secret_manager_secret" "postgres_password" {
   }
 }
 
+resource "random_password" "postgres_generated_password" {
+  length  = 16
+  special = false
+}
+
 resource "google_secret_manager_secret_version" "postgres_password_value" {
   secret      = google_secret_manager_secret.postgres_password.id
-  secret_data = module.postgres_db.generated_user_password
+  secret_data = random_password.postgres_generated_password.result
 }
 
 resource "google_secret_manager_secret" "postgres_client_certificate" {

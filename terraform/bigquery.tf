@@ -10,7 +10,7 @@ resource "google_bigquery_connection" "postgres_database_connection" {
     type        = "POSTGRES"
     credential {
       username = var.application_name
-      password = module.postgres_db.generated_user_password
+      password = random_password.postgres_generated_password.result
     }
   }
 }
